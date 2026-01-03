@@ -4,15 +4,32 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.kindhands.app.model.DonationRequest;
+import com.kindhands.app.network.ApiService;
+import com.kindhands.app.network.RetrofitClient;
 import com.kindhands.app.utils.SharedPrefManager;
 
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class AddDonationActivity extends AppCompatActivity {
+
+    private TextView tvRequirements;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_donation);
+
+        tvRequirements = findViewById(R.id.tvOrgRequirements);
 
         // Find CardViews
         View clothes = findViewById(R.id.cardClothes);
@@ -31,8 +48,6 @@ public class AddDonationActivity extends AppCompatActivity {
         if (stationery != null) stationery.setOnClickListener(v -> openForm("stationery"));
 
         // Add Logout Button Logic
-        // We will assume there is a button with id 'btnLogout' in your layout or we can add one dynamically.
-        // For now, let's look for a button if it exists or add it to the layout later.
         Button btnLogout = findViewById(R.id.btnLogout); 
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
@@ -43,6 +58,49 @@ public class AddDonationActivity extends AppCompatActivity {
                 finish();
             });
         }
+        
+        // Fetch NGO Requirements
+        fetchRequirements();
+    }
+
+    private void fetchRequirements() {
+        // Fetch "REQUIREMENT" category requests from backend
+        // Since getOpenRequests returns all, we filter on client side or need backend filter.
+        // For now, fetching all open requests and filtering.
+        
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        Call<List<DonationRequest>> call = apiService.getOpenRequests();
+        
+        call.enqueue(new Callback<List<DonationRequest>>() {
+            @Override
+            public void onResponse(Call<List<DonationRequest>> call, Response<List<DonationRequest>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    StringBuilder reqText = new StringBuilder();
+                    boolean found = false;
+                    
+                    for (DonationRequest req : response.body()) {
+                        if ("REQUIREMENT".equalsIgnoreCase(req.getCategory())) {
+                            found = true;
+                            // Display: "Org Name: Description"
+                            // Assuming otherDetails holds Org Name as set in OrganizationDashboardActivity
+                            String orgName = req.getOtherDetails() != null ? req.getOtherDetails() : "Organization";
+                            reqText.append("• ").append(orgName).append(": ").append(req.getDetails()).append("\n");
+                        }
+                    }
+                    
+                    if (found && tvRequirements != null) {
+                        tvRequirements.setText(reqText.toString());
+                        tvRequirements.setVisibility(View.VISIBLE);
+                        findViewById(R.id.lblRequirements).setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<DonationRequest>> call, Throwable t) {
+                // Fail silently for requirements
+            }
+        });
     }
 
     private void openForm(String category) {
