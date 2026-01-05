@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Layout for the medical donation form.
+    This layout contains fields for entering details about medical donations,
+    including medicine name, expiry date, and quantity.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Field for entering the name of the medicine -->
     <EditText
         android:hint="@string/medicine_name_hint"
         android:layout_width="match_parent"
@@ -12,6 +18,7 @@
         android:autofillHints="name"
         android:inputType="text"/>
 
+    <!-- Field for entering the expiry date of the medicine -->
     <EditText
         android:hint="@string/medicine_expiry_hint"
         android:layout_width="match_parent"
@@ -19,6 +26,7 @@
         android:autofillHints="date"
         android:inputType="date"/>
 
+    <!-- Field for entering the quantity of the medicine -->
     <EditText
         android:hint="@string/quantity_hint"
         android:inputType="number"
