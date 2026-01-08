@@ -50,16 +50,22 @@ public class AdminDashboardActivity extends AppCompatActivity {
         apiService.getPendingOrganizations().enqueue(new Callback<List<Organization>>() {
             @Override
             public void onResponse(Call<List<Organization>> call, Response<List<Organization>> response) {
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
                     list = response.body();
                     adapter = new PendingOrgsAdapter(list);
                     recyclerView.setAdapter(adapter);
+                } else {
+                    Toast.makeText(AdminDashboardActivity.this,
+                            "No pending requests",
+                            Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Organization>> call, Throwable t) {
-                Toast.makeText(AdminDashboardActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminDashboardActivity.this,
+                        "Error: " + t.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -88,44 +94,47 @@ public class AdminDashboardActivity extends AppCompatActivity {
             h.tvName.setText(o.getName());
             h.tvDetails.setText(o.getEmail() + " | " + o.getContact());
 
-            // 🔥 VIEW DOCUMENT
+            // 🔥 VIEW DOCUMENT (Direct backend endpoint)
             h.btnView.setOnClickListener(v -> {
-                apiService.getDocumentUrl(o.getId()).enqueue(new Callback<String>() {
-                    @Override
-                    public void onResponse(Call<String> call, Response<String> response) {
-                        if (response.isSuccessful()) {
-                            String url = response.body();
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                            startActivity(intent);
-                        }
-                    }
+                String documentUrl =
+                        RetrofitClient.getClient().baseUrl().toString()
+                                + "api/organizations/admin/document/" + o.getId();
 
-                    @Override
-                    public void onFailure(Call<String> call, Throwable t) {
-                        Toast.makeText(AdminDashboardActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(documentUrl), "*/*");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
             });
 
-            h.btnApprove.setOnClickListener(v -> update(o.getId(), true));
-            h.btnReject.setOnClickListener(v -> update(o.getId(), false));
+            h.btnApprove.setOnClickListener(v -> updateStatus(o.getId(), true));
+            h.btnReject.setOnClickListener(v -> updateStatus(o.getId(), false));
         }
 
-        private void update(Long id, boolean approve) {
-            Call<Void> call = approve ?
-                    apiService.approveOrg(id) :
-                    apiService.rejectOrg(id);
+        private void updateStatus(Long id, boolean approve) {
+            Call<Void> call = approve
+                    ? apiService.approveOrg(id)
+                    : apiService.rejectOrg(id);
 
             call.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    Toast.makeText(AdminDashboardActivity.this, "Updated", Toast.LENGTH_SHORT).show();
-                    loadPending();
+                    if (response.isSuccessful()) {
+                        Toast.makeText(AdminDashboardActivity.this,
+                                approve ? "Approved" : "Rejected",
+                                Toast.LENGTH_SHORT).show();
+                        loadPending();
+                    } else {
+                        Toast.makeText(AdminDashboardActivity.this,
+                                "Update failed",
+                                Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Toast.makeText(AdminDashboardActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminDashboardActivity.this,
+                            "Error: " + t.getMessage(),
+                            Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -136,6 +145,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
 
         class VH extends RecyclerView.ViewHolder {
+
             TextView tvName, tvDetails;
             Button btnView, btnApprove, btnReject;
 

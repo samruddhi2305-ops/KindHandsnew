@@ -1,34 +1,17 @@
 package com.kindhands.app.network;
 
-import com.kindhands.app.model.DonationRequest;
-import com.kindhands.app.model.Organization;
-import com.kindhands.app.model.OrganizationLoginRequest;
-import com.kindhands.app.model.User;
-
+import com.kindhands.app.model.*;
 import java.util.List;
 import java.util.Map;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
-import retrofit2.http.Multipart;
-import retrofit2.http.POST;
-import retrofit2.http.PUT;
-import retrofit2.http.Part;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
+import retrofit2.http.*;
 
 public interface ApiService {
 
-    // =================================================================
-    // CORRECTED: All endpoints are now prefixed with "api/"
-    // to match your backend @RequestMapping annotations.
-    // =================================================================
-
-
-    // --- AUTH CONTROLLER --- (/api/auth)
+    // ================= AUTH =================
     @POST("api/auth/register")
     Call<Object> registerUser(@Body User user);
 
@@ -45,7 +28,7 @@ public interface ApiService {
     Call<String> resetPassword(@Body Map<String, String> passwordData);
 
 
-    // --- DONOR CONTROLLER --- (/api/donors)
+    // ================= DONOR =================
     @POST("api/donors/register")
     Call<User> registerDonor(@Body User user);
 
@@ -53,7 +36,7 @@ public interface ApiService {
     Call<User> loginDonor(@Body User user);
 
 
-    // --- ORGANIZATION CONTROLLER --- (/api/organizations)
+    // ================= ORGANIZATION =================
     @Multipart
     @POST("api/organizations/register")
     Call<String> registerOrganization(
@@ -67,47 +50,49 @@ public interface ApiService {
             @Part MultipartBody.Part document
     );
 
+
     @POST("api/organizations/login")
     Call<Organization> loginOrganization(@Body OrganizationLoginRequest loginRequest);
 
 
-    // --- ADMIN PANEL (from OrganizationController) ---
-    @GET("api/organizations/pending")
+    // ================= ADMIN =================
+    @GET("api/organizations/admin/pending")
     Call<List<Organization>> getPendingOrganizations();
 
-    @PUT("api/organizations/{id}/status")
-    Call<Organization> updateOrgStatus(@Path("id") Long id, @Query("status") String status);
+    @PUT("api/organizations/admin/{id}/approve")
+    Call<Void> approveOrg(@Path("id") Long id);
+
+    @PUT("api/organizations/admin/{id}/reject")
+    Call<Void> rejectOrg(@Path("id") Long id);
 
 
-    // --- REQUEST CONTROLLER (This seems to be missing /api prefix in your backend) ---
-    // Assuming your RequestController is NOT under /api based on previous files.
-    // If it IS under /api, add "api/" to the start of these paths as well.
+    // ================= DOCUMENT VIEW =================
+    @GET("api/organizations/admin/document/{id}")
+    Call<Void> viewDocument(@Path("id") Long id);
+
+
+    // ================= REQUESTS =================
     @POST("requests/create")
     Call<DonationRequest> createRequest(@Body DonationRequest requestBody);
 
     @GET("requests/open")
     Call<List<DonationRequest>> getOpenRequests();
 
+    @GET("requests/organization/{orgId}")
+    Call<List<DonationRequest>> getOrgRequests(@Path("orgId") Long orgId);
+
     @PUT("requests/{id}/accept/{donorId}")
-    Call<DonationRequest> acceptRequest(@Path("id") Long id, @Path("donorId") Long donorId);
+    Call<DonationRequest> acceptRequest(
+            @Path("id") Long id,
+            @Path("donorId") Long donorId
+    );
 
     @PUT("requests/{id}/reject")
     Call<DonationRequest> rejectRequest(@Path("id") Long id);
 
-    @GET("requests/organization/{orgId}")
-    Call<List<DonationRequest>> getOrgRequests(@Path("orgId") Long orgId);
-
     @PUT("requests/{id}/delivered")
-    Call<DonationRequest> markRequestDelivered(@Path("id") Long id);
+    Call<DonationRequest> markDelivered(@Path("id") Long id);
 
     @PUT("requests/{id}/complete")
     Call<DonationRequest> completeRequest(@Path("id") Long id);
-
-    @GET("api/organizations/admin/document-url/{id}")
-    Call<String> getDocumentUrl(@Path("id") Long id);
-    @PUT("api/organizations/admin/{id}/approve")
-    Call<Void> approveOrg(@Path("id") Long id);
-
-    @PUT("api/organizations/admin/{id}/reject")
-    Call<Void> rejectOrg(@Path("id") Long id);
 }
