@@ -8,12 +8,9 @@ import android.widget.*;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
-
 import java.io.*;
-
 import okhttp3.*;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -110,6 +107,7 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                 rb(type),
                 rb(etAddress.getText().toString()),
                 rb(etPincode.getText().toString()),
+                rb("1"), // ✅ userId (TEMP)
                 MultipartBody.Part.createFormData(
                         "document",
                         file.getName(),
