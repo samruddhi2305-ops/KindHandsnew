@@ -94,14 +94,17 @@ public class AdminDashboardActivity extends AppCompatActivity {
             h.tvName.setText(o.getName());
             h.tvDetails.setText(o.getEmail() + " | " + o.getContact());
 
-            // 🔥 VIEW DOCUMENT (Direct backend endpoint)
+            // 🔥 VIEW DOCUMENT (Dynamically get base URL from RetrofitClient)
             h.btnView.setOnClickListener(v -> {
-                String documentUrl =
-                        RetrofitClient.getClient().baseUrl().toString()
-                                + "api/organizations/admin/document/" + o.getId();
+                String baseUrl = RetrofitClient.getClient().baseUrl().toString();
+                // Ensure there's no double slash if baseUrl already ends with one
+                if (baseUrl.endsWith("/")) {
+                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+                }
+                String documentUrl = baseUrl + "/api/organizations/admin/document/" + o.getId();
 
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.parse(documentUrl), "*/*");
+                intent.setData(Uri.parse(documentUrl));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             });
