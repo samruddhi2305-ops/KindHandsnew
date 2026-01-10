@@ -107,13 +107,16 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                 rb(type),
                 rb(etAddress.getText().toString()),
                 rb(etPincode.getText().toString()),
-                rb("1"), // ✅ userId (TEMP)
+                rb("1"),   // TEMP userId OK
                 MultipartBody.Part.createFormData(
                         "document",
                         file.getName(),
-                        RequestBody.create(MediaType.parse("multipart/form-data"), file)
+                        RequestBody.create(
+                                MediaType.parse("multipart/form-data"), file
+                        )
                 )
         );
+
 
         call.enqueue(new Callback<String>() {
             @Override

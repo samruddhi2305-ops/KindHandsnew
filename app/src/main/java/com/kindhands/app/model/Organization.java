@@ -31,8 +31,8 @@ public class Organization {
         this.type = type;
         this.address = address;
         this.pincode = pincode;
-        this.documentPath = documentPath;
         this.userId = userId;
+        this.documentPath = documentPath;
     }
 
     // ===== Getters & Setters =====

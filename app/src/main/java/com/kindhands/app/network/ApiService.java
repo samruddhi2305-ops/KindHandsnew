@@ -1,6 +1,7 @@
 package com.kindhands.app.network;
 
 import com.kindhands.app.model.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -12,14 +13,24 @@ import retrofit2.http.*;
 
 public interface ApiService {
 
-    // DONOR
+    // ===================== AUTH / USER =====================
+
+    @POST("api/auth/register")
+    Call<Map<String, String>> registerUser(@Body User user);
+
+    @POST("api/auth/login")
+    Call<User> loginUser(@Body User user);
+
+    // ===================== DONOR =====================
+
     @POST("api/donors/register")
     Call<User> registerDonor(@Body User user);
 
     @POST("api/donors/login")
     Call<User> loginDonor(@Body User user);
 
-    // ORGANIZATION
+    // ===================== ORGANIZATION =====================
+
     @Multipart
     @POST("api/organizations/register")
     Call<String> registerOrganization(
@@ -34,31 +45,28 @@ public interface ApiService {
             @Part MultipartBody.Part document
     );
 
-    // ADMIN
+    @POST("api/organizations/login")
+    Call<Organization> loginOrganization(@Body OrganizationLoginRequest loginRequest);
+
+    // ===================== ADMIN =====================
+
     @GET("api/organizations/admin/pending")
     Call<List<Organization>> getPendingOrganizations();
 
     @PUT("api/organizations/admin/{id}/approve")
-    Call<Void> approve(@Path("id") Long id);
+    Call<Void> approveOrg(@Path("id") Long id);
 
     @PUT("api/organizations/admin/{id}/reject")
-    Call<Void> reject(@Path("id") Long id);
+    Call<Void> rejectOrg(@Path("id") Long id);
 
     @GET("api/organizations/admin/document/{id}")
     Call<ResponseBody> viewDoc(@Path("id") Long id);
 
-    @GET("/api/organizations/admin/pending")
+    // ===================== DONATION REQUESTS =====================
+
+    @GET("requests/open")
     Call<List<DonationRequest>> getOpenRequests();
 
-
-    @PUT("api/organizations/admin/{id}/approve")
-            Call<Void> approveOrg(Long id);
-    @PUT("api/organizations/admin/{id}/reject")
-    Call<Void> rejectOrg(Long id);
-
-    Call<DonationRequest> createRequest(DonationRequest request);
-
-    Call<Organization> loginOrganization(OrganizationLoginRequest loginRequest);
-
-    Call<Object> registerUser(User newUser);
+    @POST("requests/create")
+    Call<DonationRequest> createRequest(@Body DonationRequest request);
 }
