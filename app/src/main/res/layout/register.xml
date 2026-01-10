@@ -116,13 +116,10 @@
     <Button
         android:id="@+id/btnRegister"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/btncurve"
+        android:layout_height="56dp"
         android:text="Register"
-        android:textColor="@android:color/white" />
-
-
+        android:backgroundTint="@color/donate_green"
+        android:layout_marginBottom="16dp"/>
 
     <!-- Link to Organization Registration (Text instead of Button) -->
     <TextView

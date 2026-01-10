@@ -49,4 +49,6 @@
     <string name="medicine_name_hint">Medicine Name</string>
     <string name="medicine_expiry_hint">Expiry Date</string>
     <string name="toy_type_label">Toy Type</string>
+
+        <!-- <string name="app_name">Kindhands</string> -->
 </resources>
