@@ -113,10 +113,10 @@
         android:layout_marginTop="24dp"/>
 
     <ImageView
-        android:id="@+id/imageView2"
-        android:layout_width="385dp"
-        android:layout_height="wrap_content"
-        app:srcCompat="@drawable/form" />
-
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginTop="10dp"
+        app:srcCompat="@drawable/hand" />
 
 </LinearLayout>
