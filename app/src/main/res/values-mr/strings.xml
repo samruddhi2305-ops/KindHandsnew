@@ -27,7 +27,7 @@
     <string name="register_title">खाते तयार करा</string>
     <string name="full_name_hint">पूर्ण नाव</string>
     <string name="phone_hint">फोन नंबर</string>
-    <string name="confirm_password_hint">पासवर्डची </string>
+    <string name="confirm_password_hint">पासवर्डची पुष्टी करा</string>
     <string name="register_button">नोंदणी करा</string>
     <string name="already_have_account">आधीच खाते आहे? लॉगिन करा</string>
     <string name="user_type_orphanage">अनाथालय</string>

@@ -4,14 +4,21 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.*;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
+
 import java.io.*;
-import okhttp3.*;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -23,7 +30,8 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
     TextView tvFile;
     Button btnUpload, btnRegister;
 
-    String selectedFilePath;
+    String selectedFilePath = null;
+
     ActivityResultLauncher<Intent> launcher;
 
     @Override
@@ -37,8 +45,10 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         etContact = findViewById(R.id.etOrgContact);
         etAddress = findViewById(R.id.etOrgAddress);
         etPincode = findViewById(R.id.etOrgPincode);
+
         spinnerType = findViewById(R.id.spinnerOrgType);
         tvFile = findViewById(R.id.tvSelectedFileName);
+
         btnUpload = findViewById(R.id.btnUploadDocument);
         btnRegister = findViewById(R.id.btnOrgRegister);
 
@@ -53,7 +63,8 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                             tvFile.setText(file.getName());
                         }
                     }
-                });
+                }
+        );
 
         btnUpload.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -73,11 +84,14 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
 
             byte[] buf = new byte[1024];
             int len;
-            while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
 
             in.close();
             out.close();
             return file;
+
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -85,6 +99,17 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
     }
 
     private void register() {
+        String name = etName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        String contact = etContact.getText().toString().trim();
+        String address = etAddress.getText().toString().trim();
+        String pincode = etPincode.getText().toString().trim();
+
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || contact.isEmpty() || address.isEmpty() || pincode.isEmpty()) {
+            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         if (selectedFilePath == null) {
             Toast.makeText(this, "Please upload document", Toast.LENGTH_SHORT).show();
@@ -93,51 +118,56 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
 
         File file = new File(selectedFilePath);
 
-        // 🔥 Spinner value backend enum शी match
         String rawType = spinnerType.getSelectedItem().toString();
-        String type = rawType.equals("Orphanage") ? "ORPHANAGE" : "OLD_AGE_HOME";
+        String type = rawType.equalsIgnoreCase("Orphanage") ? "ORPHANAGE" : "OLD_AGE_HOME";
+
+        // Generate a pseudo-unique ID for userId to avoid 'already exists' error on userId field
+        String tempUserId = String.valueOf(System.currentTimeMillis() % 100000);
 
         ApiService api = RetrofitClient.getClient().create(ApiService.class);
 
         Call<String> call = api.registerOrganization(
-                rb(etName.getText().toString()),
-                rb(etEmail.getText().toString()),
-                rb(etPassword.getText().toString()),
-                rb(etContact.getText().toString()),
+                rb(name),
+                rb(email),
+                rb(password),
+                rb(contact),
                 rb(type),
-                rb(etAddress.getText().toString()),
-                rb(etPincode.getText().toString()),
-                rb("1"),   // TEMP userId OK
+                rb(address),
+                rb(pincode),
+                rb(tempUserId), 
                 MultipartBody.Part.createFormData(
                         "document",
                         file.getName(),
-                        RequestBody.create(
-                                MediaType.parse("multipart/form-data"), file
-                        )
+                        RequestBody.create(MediaType.parse("multipart/form-data"), file)
                 )
         );
-
 
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(RegisterOrganizationActivity.this,
-                            "Registered – wait for admin approval",
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterOrganizationActivity.this, "Registered successfully!", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
-                    Toast.makeText(RegisterOrganizationActivity.this,
-                            "Failed: " + response.code(),
-                            Toast.LENGTH_LONG).show();
+                    try {
+                        String errorMsg = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                        Log.e("ORG_REGISTER_ERROR", "Error: " + errorMsg);
+                        
+                        if (errorMsg.contains("already exists")) {
+                            Toast.makeText(RegisterOrganizationActivity.this, "Error: This Email or Organization is already registered.", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(RegisterOrganizationActivity.this, "Server Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(RegisterOrganizationActivity.this,
-                        t.getMessage(),
-                        Toast.LENGTH_LONG).show();
+                Log.e("ORG_REGISTER_FAIL", t.getMessage(), t);
+                Toast.makeText(RegisterOrganizationActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -13,30 +13,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.KindHands"
-        android:usesCleartextTraffic="true"
-        android:forceDarkAllowed="false"
-        tools:targetApi="m">
+        android:usesCleartextTraffic="true">
         <activity
-            android:name=".LanguageSelectionActivity"
-            android:exported="false" />
-
-        <activity
-            android:exported="true"
-            android:name=".SplashActivity">
-            <!-- Added MAIN/LAUNCHER intent filter here -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:name=".MainActivity"
+            android:exported="true">
+            <!-- Removed MAIN/LAUNCHER intent filter from here -->
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:exported="false"> <!-- Changed to false -->
-            <!-- Removed MAIN/LAUNCHER intent filter from here -->
+            android:exported="true">
             <!-- Added MAIN/LAUNCHER intent filter here -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
