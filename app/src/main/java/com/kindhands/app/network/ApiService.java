@@ -19,7 +19,7 @@ public interface ApiService {
     Call<Map<String, String>> registerUser(@Body User user);
 
     @POST("api/auth/login")
-    Call<User> loginUser(@Body User user);
+    Call<User> loginUser(@Body OrganizationLoginRequest loginRequest);
 
     // ===================== DONOR =====================
 
@@ -27,7 +27,7 @@ public interface ApiService {
     Call<User> registerDonor(@Body User user);
 
     @POST("api/donors/login")
-    Call<User> loginDonor(@Body User user);
+    Call<User> loginDonor(@Body OrganizationLoginRequest loginRequest);
 
     // ===================== ORGANIZATION =====================
 
@@ -65,9 +65,10 @@ public interface ApiService {
 
     // ===================== DONATION REQUESTS =====================
 
-    @GET("requests/open")
+    // Updated to include 'api/' prefix to avoid 404
+    @GET("api/requests/open")
     Call<List<DonationRequest>> getOpenRequests();
 
-    @POST("requests/create")
+    @POST("api/requests/create")
     Call<DonationRequest> createRequest(@Body DonationRequest request);
 }

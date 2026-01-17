@@ -2,6 +2,7 @@ package com.kindhands.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,6 +21,8 @@ import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
 import com.kindhands.app.utils.SharedPrefManager;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +37,6 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
     private List<DonationRequest> donationList = new ArrayList<>();
     private Button btnLogout, btnPostReq;
     private EditText etReqDescription;
-    // Removed btnBack as it was removed from XML
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +49,13 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         etReqDescription = findViewById(R.id.etReqDescription);
         btnPostReq = findViewById(R.id.btnPostReq);
 
-        // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new DonationAdapter(donationList);
         recyclerView.setAdapter(adapter);
 
-        // Fetch Open Donations
-        fetchOpenDonations();
+        // This now fetches ONLY donor submissions (Offers), filtering out Org requirements
+        fetchDonorDonations();
 
-        // Logout
         btnLogout.setOnClickListener(v -> {
             SharedPrefManager.getInstance(this).logout();
             Intent intent = new Intent(OrganizationDashboardActivity.this, LoginActivity.class);
@@ -64,7 +64,6 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             finish();
         });
         
-        // Post Requirement
         btnPostReq.setOnClickListener(v -> postRequirement());
     }
 
@@ -76,33 +75,43 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        DonationRequest request = new DonationRequest("REQUIREMENT", description, 1, "Organization Requirement");
-        
+        Long orgId = SharedPrefManager.getInstance(this).getUserId();
         String orgName = SharedPrefManager.getInstance(this).getUserName();
-        request.setOtherDetails(orgName); 
+
+        DonationRequest request = new DonationRequest();
+        request.setCategory("REQUIREMENT");
+        request.setDetails(description); 
+        request.setQuantity(1);
+        request.setOtherDetails(orgName);
+        request.setStatus("OPEN");
+        request.setOrganizationId(orgId);
 
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         Call<DonationRequest> call = apiService.createRequest(request);
 
+        btnPostReq.setEnabled(false);
         call.enqueue(new Callback<DonationRequest>() {
             @Override
             public void onResponse(Call<DonationRequest> call, Response<DonationRequest> response) {
+                btnPostReq.setEnabled(true);
                 if (response.isSuccessful()) {
                     Toast.makeText(OrganizationDashboardActivity.this, "Requirement Posted Successfully!", Toast.LENGTH_LONG).show();
                     etReqDescription.setText(""); 
+                    // No need to refresh the list here because we don't want to see our own requests on the dashboard
                 } else {
-                    Toast.makeText(OrganizationDashboardActivity.this, "Failed to post: " + response.message(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(OrganizationDashboardActivity.this, "Failed to post", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<DonationRequest> call, Throwable t) {
-                Toast.makeText(OrganizationDashboardActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                btnPostReq.setEnabled(true);
+                Toast.makeText(OrganizationDashboardActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void fetchOpenDonations() {
+    private void fetchDonorDonations() {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         Call<List<DonationRequest>> call = apiService.getOpenRequests();
 
@@ -111,28 +120,26 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             public void onResponse(Call<List<DonationRequest>> call, Response<List<DonationRequest>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     donationList.clear();
-                    donationList.addAll(response.body());
+                    // FILTER: Only add donations from Donors (where category is NOT REQUIREMENT)
+                    for (DonationRequest req : response.body()) {
+                        if (!"REQUIREMENT".equalsIgnoreCase(req.getCategory())) {
+                            donationList.add(req);
+                        }
+                    }
                     adapter.notifyDataSetChanged();
-                } else {
-                    Toast.makeText(OrganizationDashboardActivity.this, "Failed to load donations", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<DonationRequest>> call, Throwable t) {
-                Toast.makeText(OrganizationDashboardActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("FETCH_ERROR", t.getMessage());
             }
         });
     }
 
-    // --- ADAPTER CLASS ---
     private class DonationAdapter extends RecyclerView.Adapter<DonationAdapter.DonationViewHolder> {
-
         private List<DonationRequest> list;
-
-        public DonationAdapter(List<DonationRequest> list) {
-            this.list = list;
-        }
+        public DonationAdapter(List<DonationRequest> list) { this.list = list; }
 
         @NonNull
         @Override
@@ -144,7 +151,6 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull DonationViewHolder holder, int position) {
             DonationRequest donation = list.get(position);
-            
             holder.tvCategory.setText(donation.getCategory() != null ? donation.getCategory() : "Donation");
             holder.tvDetails.setText(donation.getDetails());
             holder.tvDonorName.setText("Status: " + donation.getStatus()); 
@@ -159,25 +165,17 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
                 holder.imgIcon.setImageResource(R.drawable.ic_launcher_foreground);
             }
             
-            holder.btnAccept.setOnClickListener(v -> {
-                 Toast.makeText(OrganizationDashboardActivity.this, "Accept Clicked", Toast.LENGTH_SHORT).show();
-            });
-
-            holder.btnReject.setOnClickListener(v -> {
-                Toast.makeText(OrganizationDashboardActivity.this, "Reject Clicked", Toast.LENGTH_SHORT).show();
-            });
+            holder.btnAccept.setOnClickListener(v -> Toast.makeText(OrganizationDashboardActivity.this, "Accept Clicked", Toast.LENGTH_SHORT).show());
+            holder.btnReject.setOnClickListener(v -> Toast.makeText(OrganizationDashboardActivity.this, "Reject Clicked", Toast.LENGTH_SHORT).show());
         }
 
         @Override
-        public int getItemCount() {
-            return list.size();
-        }
+        public int getItemCount() { return list.size(); }
 
         class DonationViewHolder extends RecyclerView.ViewHolder {
             ImageView imgIcon;
             TextView tvCategory, tvDonorName, tvDetails;
             Button btnAccept, btnReject;
-
             public DonationViewHolder(@NonNull View itemView) {
                 super(itemView);
                 imgIcon = itemView.findViewById(R.id.imgDonationCategory);

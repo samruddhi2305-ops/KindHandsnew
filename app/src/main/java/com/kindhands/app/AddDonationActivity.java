@@ -2,6 +2,7 @@ package com.kindhands.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -65,8 +66,11 @@ public class AddDonationActivity extends AppCompatActivity {
 
     private void fetchRequirements() {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        // Using the updated endpoint
         Call<List<DonationRequest>> call = apiService.getOpenRequests();
         
+        Log.d("FETCH_REQ", "Fetching organization needs...");
+
         call.enqueue(new Callback<List<DonationRequest>>() {
             @Override
             public void onResponse(Call<List<DonationRequest>> call, Response<List<DonationRequest>> response) {
@@ -75,10 +79,11 @@ public class AddDonationActivity extends AppCompatActivity {
                     boolean found = false;
                     
                     for (DonationRequest req : response.body()) {
-                        if ("REQUIREMENT".equalsIgnoreCase(req.getCategory())) {
+                        // Logic to identify organization requirements
+                        if ("REQUIREMENT".equalsIgnoreCase(req.getCategory()) || "OPEN".equalsIgnoreCase(req.getStatus())) {
                             found = true;
                             String orgName = req.getOtherDetails() != null ? req.getOtherDetails() : "Organization";
-                            reqText.append("• ").append(orgName).append(": ").append(req.getDetails()).append("\n");
+                            reqText.append("• ").append(orgName).append(": ").append(req.getDetails() != null ? req.getDetails() : req.getDescription()).append("\n\n");
                         }
                     }
                     
@@ -87,11 +92,14 @@ public class AddDonationActivity extends AppCompatActivity {
                     } else if (tvRequirements != null) {
                         tvRequirements.setText("No current needs from organizations.");
                     }
+                } else {
+                    Log.e("FETCH_REQ_ERROR", "Code: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<List<DonationRequest>> call, Throwable t) {
+                Log.e("FETCH_REQ_FAIL", t.getMessage());
                  if (tvRequirements != null) {
                         tvRequirements.setText("Could not load organization needs.");
                  }

@@ -1,30 +1,27 @@
 package com.kindhands.app.model;
 
 public class DonationRequest {
-    // Matches the backend 'Request' entity logic
-    // Add fields that your backend Request entity has.
-    // Assuming standard fields based on your frontend form:
     
     private Long id;
     private String category;
-    private String details; // Or description
+    private String details; 
+    private String description;
     private int quantity;
     private String otherDetails;
-    
-    // Status fields from backend
     private String status; 
     private Long organizationId;
     private Long donorId;
 
     public DonationRequest() {}
 
+    // Add back the constructor that was removed to fix compilation
     public DonationRequest(String category, String details, int quantity, String otherDetails) {
         this.category = category;
-        this.details = details;
+        setDetails(details);
         this.quantity = quantity;
         this.otherDetails = otherDetails;
     }
-    
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -33,7 +30,16 @@ public class DonationRequest {
     public void setCategory(String category) { this.category = category; }
 
     public String getDetails() { return details; }
-    public void setDetails(String details) { this.details = details; }
+    public void setDetails(String details) { 
+        this.details = details;
+        this.description = details; 
+    }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { 
+        this.description = description;
+        this.details = description; 
+    }
 
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
@@ -49,5 +55,4 @@ public class DonationRequest {
 
     public Long getDonorId() { return donorId; }
     public void setDonorId(Long donorId) { this.donorId = donorId; }
-}// PR test change by Samruddhi (date)
-
+}

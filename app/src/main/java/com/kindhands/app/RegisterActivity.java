@@ -65,24 +65,32 @@ public class RegisterActivity extends AppCompatActivity {
     private void registerUser() {
         if (!validateInputs()) return;
 
+        // Ensure email and password are not modified by accidental autofill during registration
+        String name = etName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        String phone = etPhone.getText().toString().trim();
+        String address = etAddress.getText().toString().trim();
+        String pincode = etPincode.getText().toString().trim();
+        String gender = spinnerGender.getSelectedItem().toString();
+
         User newUser = new User(
-                etName.getText().toString().trim(),
-                etEmail.getText().toString().trim(),
-                etPassword.getText().toString().trim(),
-                etPhone.getText().toString().trim(),
-                etAddress.getText().toString().trim(),
-                etPincode.getText().toString().trim(),
-                spinnerGender.getSelectedItem().toString(),
+                name,
+                email,
+                password,
+                phone,
+                address,
+                pincode,
+                gender,
                 "DONOR"
         );
+
+        Log.d("REGISTER_DEBUG", "Sending: Email=" + email + ", Pass=" + password);
 
         btnRegister.setEnabled(false);
         btnRegister.setText("Registering...");
 
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-
-        // Switching to loginDonor endpoint which you said works in Postman for Donors
-        // Or if you have a specific registerDonor endpoint in your backend, use that.
         Call<User> call = apiService.registerDonor(newUser);
 
         call.enqueue(new Callback<User>() {
@@ -114,7 +122,7 @@ public class RegisterActivity extends AppCompatActivity {
             public void onFailure(Call<User> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register");
-                Toast.makeText(RegisterActivity.this, "Network Error: Use Computer IP, not localhost", Toast.LENGTH_LONG).show();
+                Toast.makeText(RegisterActivity.this, "Network Error: Check server connection", Toast.LENGTH_LONG).show();
                 Log.e("REGISTER_NETWORK", t.getMessage(), t);
             }
         });
@@ -139,4 +147,4 @@ public class RegisterActivity extends AppCompatActivity {
         }
         return true;
     }
-}//end of the file
+}
