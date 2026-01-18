@@ -90,7 +90,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private void performDonorLogin(String email, String password) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        // Fix: Use OrganizationLoginRequest instead of User to match the ApiService interface
         OrganizationLoginRequest loginRequest = new OrganizationLoginRequest(email, password);
         
         Log.d("LOGIN_DEBUG", "Attempting Donor Login for: " + email);
@@ -102,18 +101,25 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     User user = response.body();
                     Toast.makeText(LoginActivity.this, "Welcome Donor " + user.getName(), Toast.LENGTH_SHORT).show();
-                    SharedPrefManager.getInstance(LoginActivity.this).saveUser(user.getId(), user.getName(), user.getEmail(), "DONOR");
+                    // Save full donor info including mobile and address
+                    SharedPrefManager.getInstance(LoginActivity.this).saveUser(
+                            user.getId(), 
+                            user.getName(), 
+                            user.getEmail(), 
+                            "DONOR",
+                            user.getMobile(),
+                            user.getAddress()
+                    );
                     navigateToDashboard();
                 } else {
-                    // If not a donor, try Organization Login
-                    Log.d("LOGIN_DEBUG", "Donor login failed (Code: " + response.code() + "), trying Organization login...");
+                    Log.d("LOGIN_DEBUG", "Donor login failed, trying Organization login...");
                     performOrganizationLogin(email, password);
                 }
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                Log.e("LOGIN_ERROR", "Donor Login Network Failure: " + t.getMessage());
+                Log.e("LOGIN_ERROR", "Donor Login failure: " + t.getMessage());
                 performOrganizationLogin(email, password);
             }
         });
@@ -130,30 +136,25 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     Organization org = response.body();
                     
-                    // Check if Organization is approved
                     if ("REJECTED".equalsIgnoreCase(org.getStatus())) {
-                        Toast.makeText(LoginActivity.this, "Login Failed: Your organization has been rejected.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, "Login Failed: Rejected.", Toast.LENGTH_LONG).show();
                     } else if (!"APPROVED".equalsIgnoreCase(org.getStatus())) {
-                        Toast.makeText(LoginActivity.this, "Login Failed: Your account is pending approval.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, "Login Failed: Pending approval.", Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(LoginActivity.this, "Welcome " + org.getName(), Toast.LENGTH_SHORT).show();
-                        SharedPrefManager.getInstance(LoginActivity.this).saveUser(org.getId(), org.getName(), org.getEmail(), "ORGANIZATION");
+                        // Save full organization info including contact and address
+                        SharedPrefManager.getInstance(LoginActivity.this).saveUser(
+                                org.getId(), 
+                                org.getName(), 
+                                org.getEmail(), 
+                                "ORGANIZATION",
+                                org.getContact(),
+                                org.getAddress()
+                        );
                         navigateToDashboard();
                     }
                 } else {
-                    String error = "Invalid Credentials";
-                    try {
-                        if (response.errorBody() != null) {
-                            String serverError = response.errorBody().string();
-                            Log.e("LOGIN_SERVER_ERROR", serverError);
-                            if (serverError.toLowerCase().contains("not approved")) {
-                                error = "Account pending admin approval";
-                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Toast.makeText(LoginActivity.this, "Login Failed: " + error, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Login Failed: Invalid Credentials", Toast.LENGTH_SHORT).show();
                 }
             }
 

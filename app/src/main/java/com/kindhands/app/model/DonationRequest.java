@@ -1,20 +1,26 @@
 package com.kindhands.app.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class DonationRequest {
     
     private Long id;
     private String category;
+    
     private String details; 
     private String description;
+    
     private int quantity;
+
+    @SerializedName("otherDetails")
     private String otherDetails;
+    
     private String status; 
     private Long organizationId;
     private Long donorId;
 
     public DonationRequest() {}
 
-    // Add back the constructor that was removed to fix compilation
     public DonationRequest(String category, String details, int quantity, String otherDetails) {
         this.category = category;
         setDetails(details);

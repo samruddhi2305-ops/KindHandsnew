@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,14 +24,14 @@ import retrofit2.Response;
 
 public class AddDonationActivity extends AppCompatActivity {
 
-    private TextView tvRequirements;
+    private LinearLayout layoutRequirements;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_donation);
 
-        tvRequirements = findViewById(R.id.tvOrgRequirements);
+        layoutRequirements = findViewById(R.id.containerRequirements);
 
         // Find CardViews
         View clothes = findViewById(R.id.cardClothes);
@@ -40,7 +41,6 @@ public class AddDonationActivity extends AppCompatActivity {
         View toys = findViewById(R.id.cardToys);
         View stationery = findViewById(R.id.cardStationery);
 
-        // Set Click Listeners
         if (clothes != null) clothes.setOnClickListener(v -> openForm("clothes"));
         if (food != null) food.setOnClickListener(v -> openForm("food"));
         if (books != null) books.setOnClickListener(v -> openForm("books"));
@@ -48,7 +48,6 @@ public class AddDonationActivity extends AppCompatActivity {
         if (toys != null) toys.setOnClickListener(v -> openForm("toys"));
         if (stationery != null) stationery.setOnClickListener(v -> openForm("stationery"));
 
-        // Add Logout Button Logic
         Button btnLogout = findViewById(R.id.btnLogout); 
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
@@ -60,51 +59,81 @@ public class AddDonationActivity extends AppCompatActivity {
             });
         }
         
-        // Fetch NGO Requirements
         fetchRequirements();
     }
 
     private void fetchRequirements() {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        // Using the updated endpoint
         Call<List<DonationRequest>> call = apiService.getOpenRequests();
         
-        Log.d("FETCH_REQ", "Fetching organization needs...");
+        Log.d("FETCH_DEBUG", "Requesting requirements from server...");
 
         call.enqueue(new Callback<List<DonationRequest>>() {
             @Override
             public void onResponse(Call<List<DonationRequest>> call, Response<List<DonationRequest>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    StringBuilder reqText = new StringBuilder();
+                    layoutRequirements.removeAllViews();
                     boolean found = false;
                     
+                    Log.d("FETCH_DEBUG", "Total items received: " + response.body().size());
+
                     for (DonationRequest req : response.body()) {
-                        // Logic to identify organization requirements
-                        if ("REQUIREMENT".equalsIgnoreCase(req.getCategory()) || "OPEN".equalsIgnoreCase(req.getStatus())) {
+                        // LOG THE OTHERDETAILS FIELD TO VERIFY BACKEND DATA
+                        Log.d("FETCH_DEBUG", "Item: Category=" + req.getCategory() + 
+                                ", Status=" + req.getStatus() + 
+                                ", OtherDetails=" + req.getOtherDetails());
+                        
+                        if ("REQUIREMENT".equalsIgnoreCase(req.getCategory()) || 
+                           (req.getDonorId() == null && "OPEN".equalsIgnoreCase(req.getStatus()))) {
                             found = true;
-                            String orgName = req.getOtherDetails() != null ? req.getOtherDetails() : "Organization";
-                            reqText.append("• ").append(orgName).append(": ").append(req.getDetails() != null ? req.getDetails() : req.getDescription()).append("\n\n");
+                            addRequirementItem(req);
                         }
                     }
                     
-                    if (found && tvRequirements != null) {
-                        tvRequirements.setText(reqText.toString());
-                    } else if (tvRequirements != null) {
-                        tvRequirements.setText("No current needs from organizations.");
+                    if (!found) {
+                        TextView tvEmpty = new TextView(AddDonationActivity.this);
+                        tvEmpty.setText("No current needs from organizations.");
+                        tvEmpty.setPadding(20, 40, 20, 40);
+                        tvEmpty.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                        layoutRequirements.addView(tvEmpty);
                     }
                 } else {
-                    Log.e("FETCH_REQ_ERROR", "Code: " + response.code());
+                    Log.e("FETCH_DEBUG", "Server returned error: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<List<DonationRequest>> call, Throwable t) {
-                Log.e("FETCH_REQ_FAIL", t.getMessage());
-                 if (tvRequirements != null) {
-                        tvRequirements.setText("Could not load organization needs.");
-                 }
+                Log.e("FETCH_DEBUG", "Network failure: " + t.getMessage());
+                Toast.makeText(AddDonationActivity.this, "Failed to load needs", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void addRequirementItem(DonationRequest req) {
+        View itemView = getLayoutInflater().inflate(R.layout.item_org_requirement, layoutRequirements, false);
+        
+        TextView tvDetails = itemView.findViewById(R.id.tvReqDetails);
+        TextView tvOrgInfo = itemView.findViewById(R.id.tvOrgInfo);
+        Button btnApprove = itemView.findViewById(R.id.btnApproveReq);
+        Button btnDisapprove = itemView.findViewById(R.id.btnDisapproveReq);
+
+        String desc = req.getDetails() != null ? req.getDetails() : (req.getDescription() != null ? req.getDescription() : "No description");
+        tvDetails.setText("Need: " + desc);
+        
+        // If this still shows N/A, check the Logcat log for 'FETCH_DEBUG'
+        tvOrgInfo.setText(req.getOtherDetails() != null ? req.getOtherDetails() : "Organization Info N/A");
+
+        btnApprove.setOnClickListener(v -> {
+            Toast.makeText(this, "Thank you! We will notify the organization.", Toast.LENGTH_LONG).show();
+            layoutRequirements.removeView(itemView);
+        });
+
+        btnDisapprove.setOnClickListener(v -> {
+            layoutRequirements.removeView(itemView);
+        });
+
+        layoutRequirements.addView(itemView);
     }
 
     private void openForm(String category) {

@@ -51,6 +51,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
         adapter = new DonationAdapter(donationList);
         recyclerView.setAdapter(adapter);
 
+        // This method now correctly filters only for Donor donations (Offers)
         fetchDonorDonations();
 
         btnLogout.setOnClickListener(v -> {
@@ -72,18 +73,22 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        Long orgId = SharedPrefManager.getInstance(this).getUserId();
-        String orgName = SharedPrefManager.getInstance(this).getUserName();
-        String orgContact = SharedPrefManager.getInstance(this).getUserContact();
-        String orgAddress = SharedPrefManager.getInstance(this).getUserAddress();
+        SharedPrefManager pref = SharedPrefManager.getInstance(this);
+        Long orgId = pref.getUserId();
+        String orgName = pref.getUserName();
+        String orgContact = pref.getUserContact();
+        String orgAddress = pref.getUserAddress();
 
         DonationRequest request = new DonationRequest();
         request.setCategory("REQUIREMENT");
         request.setDetails(description); 
         request.setQuantity(1);
         
-        // Pack all info into otherDetails
-        String fullInfo = orgName + " | Contact: " + orgContact + " | Address: " + orgAddress;
+        String name = (orgName != null && !orgName.isEmpty()) ? orgName : "Organization";
+        String contact = (orgContact != null && !orgContact.equals("N/A")) ? orgContact : "Contact not provided";
+        String address = (orgAddress != null && !orgAddress.equals("N/A")) ? orgAddress : "Address not provided";
+
+        String fullInfo = name + " | Contact: " + contact + " | Address: " + address;
         request.setOtherDetails(fullInfo);
         
         request.setStatus("OPEN");
@@ -100,6 +105,7 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     Toast.makeText(OrganizationDashboardActivity.this, "Requirement Posted Successfully!", Toast.LENGTH_LONG).show();
                     etReqDescription.setText(""); 
+                    // Important: We DON'T refresh the list here because we don't want to see our own requirements
                 } else {
                     Toast.makeText(OrganizationDashboardActivity.this, "Failed to post", Toast.LENGTH_SHORT).show();
                 }
@@ -122,8 +128,10 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             public void onResponse(Call<List<DonationRequest>> call, Response<List<DonationRequest>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     donationList.clear();
+                    // FILTER: Only add donations from Donors (where donorId is NOT null)
+                    // and ensure we exclude our own REQUIREMENTS.
                     for (DonationRequest req : response.body()) {
-                        if (!"REQUIREMENT".equalsIgnoreCase(req.getCategory())) {
+                        if (req.getDonorId() != null && !"REQUIREMENT".equalsIgnoreCase(req.getCategory())) {
                             donationList.add(req);
                         }
                     }
