@@ -10,6 +10,8 @@ public class SharedPrefManager {
     private static final String KEY_USER_NAME = "user_name";
     private static final String KEY_USER_EMAIL = "user_email";
     private static final String KEY_USER_TYPE = "user_type"; // "DONOR" or "ORGANIZATION"
+    private static final String KEY_USER_CONTACT = "user_contact";
+    private static final String KEY_USER_ADDRESS = "user_address";
 
     private static SharedPrefManager instance;
     private static Context ctx;
@@ -25,7 +27,7 @@ public class SharedPrefManager {
         return instance;
     }
 
-    public void saveUser(Long id, String name, String email, String type) {
+    public void saveUser(Long id, String name, String email, String type, String contact, String address) {
         SharedPreferences sharedPreferences = ctx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean(KEY_IS_LOGGED_IN, true);
@@ -33,12 +35,18 @@ public class SharedPrefManager {
         editor.putString(KEY_USER_NAME, name);
         editor.putString(KEY_USER_EMAIL, email);
         editor.putString(KEY_USER_TYPE, type);
+        editor.putString(KEY_USER_CONTACT, contact);
+        editor.putString(KEY_USER_ADDRESS, address);
         editor.apply();
     }
 
-    // Overloaded method for backward compatibility or cases where ID is not available (like Admin)
+    // Overloaded methods for backward compatibility
+    public void saveUser(Long id, String name, String email, String type) {
+        saveUser(id, name, email, type, null, null);
+    }
+
     public void saveUser(String name, String email, String type) {
-        saveUser(-1L, name, email, type);
+        saveUser(-1L, name, email, type, null, null);
     }
 
     public boolean isLoggedIn() {
@@ -59,6 +67,16 @@ public class SharedPrefManager {
     public String getUserType() {
         SharedPreferences sharedPreferences = ctx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
         return sharedPreferences.getString(KEY_USER_TYPE, null);
+    }
+
+    public String getUserContact() {
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(KEY_USER_CONTACT, "N/A");
+    }
+
+    public String getUserAddress() {
+        SharedPreferences sharedPreferences = ctx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(KEY_USER_ADDRESS, "N/A");
     }
 
     public void logout() {
