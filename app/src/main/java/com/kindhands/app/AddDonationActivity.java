@@ -33,7 +33,8 @@ public class AddDonationActivity extends AppCompatActivity {
 
         layoutRequirements = findViewById(R.id.containerRequirements);
 
-        // Find CardViews
+        /* ===================== DONATION BOX CODE REMOVED =====================
+        // Find CardViews (COMMENTED because UI is removed)
         View clothes = findViewById(R.id.cardClothes);
         View food = findViewById(R.id.cardFood);
         View books = findViewById(R.id.cardBooks);
@@ -47,8 +48,10 @@ public class AddDonationActivity extends AppCompatActivity {
         if (medical != null) medical.setOnClickListener(v -> openForm("medical"));
         if (toys != null) toys.setOnClickListener(v -> openForm("toys"));
         if (stationery != null) stationery.setOnClickListener(v -> openForm("stationery"));
+        ===================== DONATION BOX CODE END ===================== */
 
-        Button btnLogout = findViewById(R.id.btnLogout); 
+        // Logout button (KEEP THIS)
+        Button btnLogout = findViewById(R.id.btnLogout);
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
                 SharedPrefManager.getInstance(this).logout();
@@ -58,14 +61,16 @@ public class AddDonationActivity extends AppCompatActivity {
                 finish();
             });
         }
-        
+
+        // Fetch organization needs (KEEP THIS)
         fetchRequirements();
     }
 
+    /* ===================== ORGANIZATION NEEDS LOGIC (KEEP) ===================== */
     private void fetchRequirements() {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         Call<List<DonationRequest>> call = apiService.getOpenRequests();
-        
+
         Log.d("FETCH_DEBUG", "Requesting requirements from server...");
 
         call.enqueue(new Callback<List<DonationRequest>>() {
@@ -74,22 +79,22 @@ public class AddDonationActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     layoutRequirements.removeAllViews();
                     boolean found = false;
-                    
+
                     Log.d("FETCH_DEBUG", "Total items received: " + response.body().size());
 
                     for (DonationRequest req : response.body()) {
-                        // LOG THE OTHERDETAILS FIELD TO VERIFY BACKEND DATA
-                        Log.d("FETCH_DEBUG", "Item: Category=" + req.getCategory() + 
-                                ", Status=" + req.getStatus() + 
-                                ", OtherDetails=" + req.getOtherDetails());
-                        
-                        if ("REQUIREMENT".equalsIgnoreCase(req.getCategory()) || 
-                           (req.getDonorId() == null && "OPEN".equalsIgnoreCase(req.getStatus()))) {
+                        Log.d("FETCH_DEBUG",
+                                "Item: Category=" + req.getCategory() +
+                                        ", Status=" + req.getStatus() +
+                                        ", OtherDetails=" + req.getOtherDetails());
+
+                        if ("REQUIREMENT".equalsIgnoreCase(req.getCategory()) ||
+                                (req.getDonorId() == null && "OPEN".equalsIgnoreCase(req.getStatus()))) {
                             found = true;
                             addRequirementItem(req);
                         }
                     }
-                    
+
                     if (!found) {
                         TextView tvEmpty = new TextView(AddDonationActivity.this);
                         tvEmpty.setText("No current needs from organizations.");
@@ -111,21 +116,27 @@ public class AddDonationActivity extends AppCompatActivity {
     }
 
     private void addRequirementItem(DonationRequest req) {
-        View itemView = getLayoutInflater().inflate(R.layout.item_org_requirement, layoutRequirements, false);
-        
+        View itemView = getLayoutInflater()
+                .inflate(R.layout.item_org_requirement, layoutRequirements, false);
+
         TextView tvDetails = itemView.findViewById(R.id.tvReqDetails);
         TextView tvOrgInfo = itemView.findViewById(R.id.tvOrgInfo);
         Button btnApprove = itemView.findViewById(R.id.btnApproveReq);
         Button btnDisapprove = itemView.findViewById(R.id.btnDisapproveReq);
 
-        String desc = req.getDetails() != null ? req.getDetails() : (req.getDescription() != null ? req.getDescription() : "No description");
+        String desc = req.getDetails() != null
+                ? req.getDetails()
+                : (req.getDescription() != null ? req.getDescription() : "No description");
+
         tvDetails.setText("Need: " + desc);
-        
-        // If this still shows N/A, check the Logcat log for 'FETCH_DEBUG'
-        tvOrgInfo.setText(req.getOtherDetails() != null ? req.getOtherDetails() : "Organization Info N/A");
+        tvOrgInfo.setText(req.getOtherDetails() != null
+                ? req.getOtherDetails()
+                : "Organization Info N/A");
 
         btnApprove.setOnClickListener(v -> {
-            Toast.makeText(this, "Thank you! We will notify the organization.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this,
+                    "Thank you! We will notify the organization.",
+                    Toast.LENGTH_LONG).show();
             layoutRequirements.removeView(itemView);
         });
 
@@ -135,10 +146,13 @@ public class AddDonationActivity extends AppCompatActivity {
 
         layoutRequirements.addView(itemView);
     }
+    /* ===================== ORGANIZATION NEEDS LOGIC END ===================== */
 
+    /* ===================== DONATION FORM NAVIGATION REMOVED =====================
     private void openForm(String category) {
         Intent intent = new Intent(this, DonationDetailsActivity.class);
         intent.putExtra("category", category);
         startActivity(intent);
     }
+    ===================== DONATION FORM NAVIGATION END ===================== */
 }

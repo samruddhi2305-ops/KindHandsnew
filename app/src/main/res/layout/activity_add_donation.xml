@@ -44,6 +44,8 @@
 
         </RelativeLayout>
 
+        <!-- ================== DONATION BOXES REMOVED ================== -->
+        <!--
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -269,6 +271,8 @@
             </androidx.cardview.widget.CardView>
 
         </GridLayout>
+        -->
+        <!-- ================== DONATION BOXES END ================== -->
 
         <TextView
             android:id="@+id/lblRequirements"
