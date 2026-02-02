@@ -129,3 +129,4 @@ public class AddDonationActivity extends AppCompatActivity {
 
         layoutRequirements.addView(itemView);
     }
+}
