@@ -33,24 +33,7 @@ public class AddDonationActivity extends AppCompatActivity {
 
         layoutRequirements = findViewById(R.id.containerRequirements);
 
-        /* ===================== DONATION BOX CODE REMOVED =====================
-        // Find CardViews (COMMENTED because UI is removed)
-        View clothes = findViewById(R.id.cardClothes);
-        View food = findViewById(R.id.cardFood);
-        View books = findViewById(R.id.cardBooks);
-        View medical = findViewById(R.id.cardMedical);
-        View toys = findViewById(R.id.cardToys);
-        View stationery = findViewById(R.id.cardStationery);
 
-        if (clothes != null) clothes.setOnClickListener(v -> openForm("clothes"));
-        if (food != null) food.setOnClickListener(v -> openForm("food"));
-        if (books != null) books.setOnClickListener(v -> openForm("books"));
-        if (medical != null) medical.setOnClickListener(v -> openForm("medical"));
-        if (toys != null) toys.setOnClickListener(v -> openForm("toys"));
-        if (stationery != null) stationery.setOnClickListener(v -> openForm("stationery"));
-        ===================== DONATION BOX CODE END ===================== */
-
-        // Logout button (KEEP THIS)
         Button btnLogout = findViewById(R.id.btnLogout);
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
@@ -66,7 +49,7 @@ public class AddDonationActivity extends AppCompatActivity {
         fetchRequirements();
     }
 
-    /* ===================== ORGANIZATION NEEDS LOGIC (KEEP) ===================== */
+
     private void fetchRequirements() {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         Call<List<DonationRequest>> call = apiService.getOpenRequests();
@@ -146,13 +129,3 @@ public class AddDonationActivity extends AppCompatActivity {
 
         layoutRequirements.addView(itemView);
     }
-    /* ===================== ORGANIZATION NEEDS LOGIC END ===================== */
-
-    /* ===================== DONATION FORM NAVIGATION REMOVED =====================
-    private void openForm(String category) {
-        Intent intent = new Intent(this, DonationDetailsActivity.class);
-        intent.putExtra("category", category);
-        startActivity(intent);
-    }
-    ===================== DONATION FORM NAVIGATION END ===================== */
-}
