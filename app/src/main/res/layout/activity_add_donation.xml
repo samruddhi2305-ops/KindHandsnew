@@ -44,7 +44,7 @@
 
         </RelativeLayout>
 
-        <GridLayout
+       <!-- <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:alignmentMode="alignMargins"
@@ -52,7 +52,7 @@
             android:columnOrderPreserved="false"
             android:useDefaultMargins="true">
 
-            <!-- Clothes Card -->
+            //Clothes Card
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardClothes"
                 android:layout_width="0dp"
@@ -89,7 +89,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Food Card -->
+             //Food Card
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardFood"
                 android:layout_width="0dp"
@@ -126,7 +126,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Books Card -->
+            // Books Card
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardBooks"
                 android:layout_width="0dp"
@@ -157,7 +157,7 @@
                         android:padding="12dp"
                         android:text="Books"
                         android:textColor="#FFFFFF"
-                        android:background="@drawable/bookcol"
+                        android:background="@drawable/book"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -165,7 +165,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Medical Card -->
+            //Medical Card
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardMedical"
                 android:layout_width="0dp"
@@ -202,7 +202,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Toys Card -->
+            // Toys Card
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardToys"
                 android:layout_width="0dp"
@@ -239,7 +239,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Stationery Card -->
+            //Stationery Card
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardStationery"
                 android:layout_width="0dp"
@@ -276,9 +276,9 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-        </GridLayout>
+        </GridLayout>-->
 
-        <!-- Requirements Section (Moved Below Donation Cards) -->
+        //Requirements Section (Moved Below Donation Cards)
         <TextView
             android:id="@+id/lblRequirements"
             android:layout_width="187dp"
