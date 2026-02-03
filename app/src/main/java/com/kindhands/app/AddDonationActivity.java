@@ -31,21 +31,21 @@ public class AddDonationActivity extends AppCompatActivity {
 
         tvRequirements = findViewById(R.id.tvOrgRequirements);
 
-        // Find CardViews
+       /* // Find CardViews
         View clothes = findViewById(R.id.cardClothes);
         View food = findViewById(R.id.cardFood);
         View books = findViewById(R.id.cardBooks);
         View medical = findViewById(R.id.cardMedical);
         View toys = findViewById(R.id.cardToys);
-        View stationery = findViewById(R.id.cardStationery);
+        View stationery = findViewById(R.id.cardStationery);*/
 
-        // Set Click Listeners
+       /* // Set Click Listeners
         if (clothes != null) clothes.setOnClickListener(v -> openForm("clothes"));
         if (food != null) food.setOnClickListener(v -> openForm("food"));
         if (books != null) books.setOnClickListener(v -> openForm("books"));
         if (medical != null) medical.setOnClickListener(v -> openForm("medical"));
         if (toys != null) toys.setOnClickListener(v -> openForm("toys"));
-        if (stationery != null) stationery.setOnClickListener(v -> openForm("stationery"));
+        if (stationery != null) stationery.setOnClickListener(v -> openForm("stationery"));*/
 
         // Add Logout Button Logic
         Button btnLogout = findViewById(R.id.btnLogout); 
@@ -99,9 +99,9 @@ public class AddDonationActivity extends AppCompatActivity {
         });
     }
 
-    private void openForm(String category) {
-        Intent intent = new Intent(this, DonationDetailsActivity.class);
-        intent.putExtra("category", category);
-        startActivity(intent);
-    }
+    /*private void openForm(String category) {
+        Intent intent = new Intent(this,DonationDetailsActivity.class);
+       intent.putExtra("category", category);
+      startActivity(intent);
+    }*/
 }

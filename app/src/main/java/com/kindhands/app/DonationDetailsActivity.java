@@ -1,3 +1,4 @@
+/*
 package com.kindhands.app;
 
 import android.os.Bundle;
@@ -49,24 +50,15 @@ public class DonationDetailsActivity extends AppCompatActivity {
         }
 
         LayoutInflater inflater = getLayoutInflater();
-        // The final reference to formView is the key to making this reliable.
         final View formView = inflater.inflate(layoutId, container, false);
 
-        // --- Set up all views and listeners for this specific form ---
-
-        // 1. Setup Form-Specific Spinners or Checkboxes
         setupSpecificFormElements(formView);
-
-        // 2. Setup Common Spinners (Organization Type)
         setupCommonSpinners(formView);
 
-        // 3. Find the button and set its listener with all logic inside
         Button btnSubmit = formView.findViewById(R.id.btnSubmitDonation);
         if (btnSubmit != null) {
             btnSubmit.setOnClickListener(v -> {
-                // The entire submission process is now self-contained here,
-                // using the reliable 'formView' reference.
-                
+
                 Toast.makeText(DonationDetailsActivity.this, "Submitting...", Toast.LENGTH_SHORT).show();
 
                 String details;
@@ -108,7 +100,7 @@ public class DonationDetailsActivity extends AppCompatActivity {
                     public void onResponse(Call<DonationRequest> call, Response<DonationRequest> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             Toast.makeText(DonationDetailsActivity.this, "Donation Submitted Successfully!", Toast.LENGTH_LONG).show();
-                            finish(); // This returns to the donation dashboard
+                            finish();
                         } else {
                             Toast.makeText(DonationDetailsActivity.this, "Submission Failed. Code: " + response.code(), Toast.LENGTH_SHORT).show();
                         }
@@ -125,7 +117,6 @@ public class DonationDetailsActivity extends AppCompatActivity {
             Log.e("FormSetup", "CRITICAL: Submit button not found in layout for " + category);
         }
 
-        // Finally, add the fully prepared view to the screen
         container.removeAllViews();
         container.addView(formView);
     }
@@ -141,11 +132,12 @@ public class DonationDetailsActivity extends AppCompatActivity {
             default: return -1;
         }
     }
-    
+
     private String getDonationDetails(View formView) {
         switch (category) {
             case "food":
-                return "Food Type: " + ((EditText) formView.findViewById(R.id.etFoodType)).getText().toString() + ", Expires: " + ((EditText) formView.findViewById(R.id.etExpiryDate)).getText().toString();
+                return "Food Type: " + ((EditText) formView.findViewById(R.id.etFoodType)).getText().toString()
+                        + ", Expires: " + ((EditText) formView.findViewById(R.id.etExpiryDate)).getText().toString();
             case "clothes":
                 return "Type: " + ((Spinner) formView.findViewById(R.id.spinnerClothingType)).getSelectedItem().toString();
             case "books":
@@ -166,7 +158,8 @@ public class DonationDetailsActivity extends AppCompatActivity {
             Spinner spinner = formView.findViewById(R.id.spinnerClothingType);
             if (spinner != null) {
                 String[] clothingTypes = {"Shirt", "Pants", "Saree", "Jacket", "Other"};
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, clothingTypes);
+                ArrayAdapter<String> adapter =
+                        new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, clothingTypes);
                 spinner.setAdapter(adapter);
             }
         } else if (category.equals("books")) {
@@ -184,8 +177,10 @@ public class DonationDetailsActivity extends AppCompatActivity {
         Spinner orgTypeSpinner = formView.findViewById(R.id.spinnerOrgType);
         if (orgTypeSpinner != null) {
             String[] orgTypes = {"Orphanage", "Old Age Home"};
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, orgTypes);
+            ArrayAdapter<String> adapter =
+                    new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, orgTypes);
             orgTypeSpinner.setAdapter(adapter);
         }
     }
 }
+*/
