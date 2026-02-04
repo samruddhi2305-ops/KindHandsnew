@@ -19,45 +19,101 @@
             android:layout_height="wrap_content"
             android:text="Organization Name"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/primary_text"/>
 
-        <TextView
-            android:id="@+id/tvOrgDetails"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Email | Phone | Address"
-            android:layout_marginTop="4dp"/>
-
+        <!-- Updated backgroundTint to Violet (#8727B0) -->
         <Button
-            android:id="@+id/btnViewCertificate"
+            android:id="@+id/btnToggleDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/btncurve"
-            android:text="View Certificate" />
+            android:layout_marginTop="8dp"
+            android:text="View Organization Details"
+            android:backgroundTint="#8727B0"
+            android:textColor="@android:color/white" />
 
+        <!-- All details and verification buttons are now inside this hidden layout -->
         <LinearLayout
+            android:id="@+id/layoutDetails"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
+            android:visibility="gone"
             android:layout_marginTop="8dp">
 
-            <Button
-                android:id="@+id/btnApprove"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/tvEmail"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Approve"
-                android:backgroundTint="#4CAF50"
-                android:layout_marginEnd="8dp"/>
+                android:text="Email: "
+                android:padding="2dp"/>
+
+            <TextView
+                android:id="@+id/tvContact"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Contact: "
+                android:padding="2dp"/>
+
+            <TextView
+                android:id="@+id/tvAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Address: "
+                android:padding="2dp"/>
+
+            <TextView
+                android:id="@+id/tvType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Type: "
+                android:padding="2dp"/>
+
+            <TextView
+                android:id="@+id/tvPincode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pincode: "
+                android:padding="2dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#DDDDDD"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"/>
 
             <Button
-                android:id="@+id/btnReject"
-                android:layout_width="0dp"
+                android:id="@+id/btnViewCertificate"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Reject"
-                android:backgroundTint="#F44336"/>
+                android:backgroundTint="@color/donate_green"
+                android:text="View Certificate" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
+
+                <Button
+                    android:id="@+id/btnApprove"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Approve"
+                    android:backgroundTint="#4CAF50"
+                    android:layout_marginEnd="8dp"/>
+
+                <Button
+                    android:id="@+id/btnReject"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Reject"
+                    android:backgroundTint="#F44336"/>
+
+            </LinearLayout>
 
         </LinearLayout>
 

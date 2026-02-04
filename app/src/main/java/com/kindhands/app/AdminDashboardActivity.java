@@ -3,11 +3,11 @@ package com.kindhands.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -72,17 +72,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     adapter = new PendingOrgsAdapter(list);
                     recyclerView.setAdapter(adapter);
                 } else {
-                    Toast.makeText(AdminDashboardActivity.this,
-                            "No pending requests",
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminDashboardActivity.this, "No pending requests", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Organization>> call, Throwable t) {
-                Toast.makeText(AdminDashboardActivity.this,
-                        "Error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminDashboardActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -125,7 +121,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private void openFile(File file) {
         Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, "application/pdf"); // Assuming it's a PDF
+        intent.setDataAndType(uri, "application/pdf");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
             startActivity(intent);
@@ -134,7 +130,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
     }
 
-    // ================= ADAPTER =================
     class PendingOrgsAdapter extends RecyclerView.Adapter<PendingOrgsAdapter.VH> {
 
         List<Organization> orgs;
@@ -146,8 +141,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         @NonNull
         @Override
         public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_pending_organization, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_pending_organization, parent, false);
             return new VH(v);
         }
 
@@ -156,7 +150,21 @@ public class AdminDashboardActivity extends AppCompatActivity {
             Organization o = orgs.get(pos);
 
             h.tvName.setText(o.getName());
-            h.tvDetails.setText(o.getEmail() + " | " + o.getContact());
+            h.tvEmail.setText("Email: " + o.getEmail());
+            h.tvContact.setText("Contact: " + o.getContact());
+            h.tvAddress.setText("Address: " + o.getAddress());
+            h.tvType.setText("Type: " + o.getType());
+            h.tvPincode.setText("Pincode: " + o.getPincode());
+
+            h.btnToggleDetails.setOnClickListener(v -> {
+                if (h.layoutDetails.getVisibility() == View.GONE) {
+                    h.layoutDetails.setVisibility(View.VISIBLE);
+                    h.btnToggleDetails.setText("Hide Organization Details");
+                } else {
+                    h.layoutDetails.setVisibility(View.GONE);
+                    h.btnToggleDetails.setText("View Organization Details");
+                }
+            });
 
             h.btnView.setOnClickListener(v -> downloadAndOpenDoc(o.getId()));
 
@@ -165,30 +173,21 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
 
         private void updateStatus(Long id, boolean approve) {
-            Call<Void> call = approve
-                    ? apiService.approveOrg(id)
-                    : apiService.rejectOrg(id);
-
+            Call<Void> call = approve ? apiService.approveOrg(id) : apiService.rejectOrg(id);
             call.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
-                        Toast.makeText(AdminDashboardActivity.this,
-                                approve ? "Approved" : "Rejected",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AdminDashboardActivity.this, approve ? "Approved" : "Rejected", Toast.LENGTH_SHORT).show();
                         loadPending();
                     } else {
-                        Toast.makeText(AdminDashboardActivity.this,
-                                "Update failed",
-                                Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AdminDashboardActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
-                    Toast.makeText(AdminDashboardActivity.this,
-                            "Error: " + t.getMessage(),
-                            Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminDashboardActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -199,14 +198,20 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
 
         class VH extends RecyclerView.ViewHolder {
-
-            TextView tvName, tvDetails;
-            Button btnView, btnApprove, btnReject;
+            TextView tvName, tvEmail, tvContact, tvAddress, tvType, tvPincode;
+            LinearLayout layoutDetails;
+            Button btnToggleDetails, btnView, btnApprove, btnReject;
 
             VH(View v) {
                 super(v);
                 tvName = v.findViewById(R.id.tvOrgName);
-                tvDetails = v.findViewById(R.id.tvOrgDetails);
+                tvEmail = v.findViewById(R.id.tvEmail);
+                tvContact = v.findViewById(R.id.tvContact);
+                tvAddress = v.findViewById(R.id.tvAddress);
+                tvType = v.findViewById(R.id.tvType);
+                tvPincode = v.findViewById(R.id.tvPincode);
+                layoutDetails = v.findViewById(R.id.layoutDetails);
+                btnToggleDetails = v.findViewById(R.id.btnToggleDetails);
                 btnView = v.findViewById(R.id.btnViewCertificate);
                 btnApprove = v.findViewById(R.id.btnApprove);
                 btnReject = v.findViewById(R.id.btnReject);

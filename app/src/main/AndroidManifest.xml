@@ -28,9 +28,9 @@
             android:name=".LanguageSelectionActivity"
             android:exported="false" />
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
+        <!--<activity
+            android:name=".MActivity"
+            android:exported="false" />-->
 
         <activity
             android:name=".LoginActivity"
@@ -45,9 +45,9 @@
         <activity
             android:name=".AddDonationActivity"
             android:exported="false" />
-        <activity
+       <!-- <activity
             android:name=".DonationDetailsActivity"
-            android:exported="false" />
+            android:exported="false" />-->
         <activity
             android:name=".RegisterOrganizationActivity"
             android:exported="false" />
