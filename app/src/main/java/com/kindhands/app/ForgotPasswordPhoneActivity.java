@@ -1,6 +1,6 @@
 package com.kindhands.app;
 
-import android.content.Intent; // <-- ADD THIS LINE
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -8,42 +8,60 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.kindhands.app.network.ApiService;
+import com.kindhands.app.network.RetrofitClient;
+
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class ForgotPasswordPhoneActivity extends AppCompatActivity {
 
-    private EditText etPhoneNumber;
+    private EditText etEmail;
     private Button btnSendOtp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Set the content view to your XML layout
         setContentView(R.layout.activity_forgot_password_phone);
 
-        // Initialize the views from your layout
-        etPhoneNumber = findViewById(R.id.etPhoneNumber); // Make sure this ID matches your EditText in the XML
-        btnSendOtp = findViewById(R.id.btnSendOtp);       // Make sure this ID matches your Button in the XML
-
-        // In ForgotPasswordPhoneActivity.java
+        etEmail = findViewById(R.id.etEmail);
+        btnSendOtp = findViewById(R.id.btnSendOtp);
 
         btnSendOtp.setOnClickListener(v -> {
-            String phoneNumber = etPhoneNumber.getText().toString().trim();
+            String email = etEmail.getText().toString().trim();
 
-            if (phoneNumber.isEmpty() || phoneNumber.length() < 10) {
-                etPhoneNumber.setError("A valid phone number is required");
-                etPhoneNumber.requestFocus();
-                return; // This return statement stops execution if the phone number is invalid
+            if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                etEmail.setError("A valid email address is required");
+                etEmail.requestFocus();
+                return;
             }
 
-            // --- TODO: Implement actual OTP sending logic here ---
-            Toast.makeText(this, "Sending OTP to " + phoneNumber, Toast.LENGTH_SHORT).show();
+            sendOtpToEmail(email);
+        });
+    }
 
-            // Create the intent to navigate to the OTP screen
-            // All the errors on the lines below will disappear after adding the import.
-            Intent intent = new Intent(ForgotPasswordPhoneActivity.this, ForgotPasswordOtpActivity.class);
-            intent.putExtra("PHONE_NUMBER", phoneNumber); // Pass the phone number
+    private void sendOtpToEmail(String email) {
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.sendOtp(email).enqueue(new Callback<Map<String, String>>() {
+            @Override
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(ForgotPasswordPhoneActivity.this, "OTP sent successfully to " + email, Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(ForgotPasswordPhoneActivity.this, ForgotPasswordOtpActivity.class);
+                    intent.putExtra("EMAIL", email);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(ForgotPasswordPhoneActivity.this, "Failed to send OTP. Check if email exists.", Toast.LENGTH_SHORT).show();
+                }
+            }
 
-            // ***** THIS IS THE CRUCIAL LINE *****
-            startActivity(intent); // Make sure this line exists and is being called
+            @Override
+            public void onFailure(Call<Map<String, String>> call, Throwable t) {
+                Toast.makeText(ForgotPasswordPhoneActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

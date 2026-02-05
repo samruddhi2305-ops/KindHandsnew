@@ -74,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             // CHECK FOR ADMIN LOGIN FIRST (Case Insensitive Email)
-            if ("admin@kindhands.com".equalsIgnoreCase(email) && "admin123".equals(password)) {
+            if ("team.kindhands12@gmail.com".equalsIgnoreCase(email) && "#KINDHANDS26".equals(password)) {
                 Toast.makeText(LoginActivity.this, "Welcome Admin!", Toast.LENGTH_SHORT).show();
                 SharedPrefManager.getInstance(LoginActivity.this).saveUser("Admin", "admin@kindhands.com", "ADMIN");
                 navigateToDashboard();

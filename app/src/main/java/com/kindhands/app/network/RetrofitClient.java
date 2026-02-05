@@ -8,7 +8,8 @@ public class RetrofitClient {
 
     private static Retrofit retrofit;
 
-    // When using `adb reverse`, localhost on the device is forwarded to the host machine.
+    // Using your computer's IP address. 
+    // If this IP changes (e.g., you connect to a new WiFi), you must update it here.
     private static final String BASE_URL = "http://10.244.239.134:8080/";
 
     public static Retrofit getClient() {

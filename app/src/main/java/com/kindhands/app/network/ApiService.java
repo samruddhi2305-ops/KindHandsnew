@@ -21,6 +21,15 @@ public interface ApiService {
     @POST("api/auth/login")
     Call<User> loginUser(@Body User user);
 
+    @POST("api/auth/forgot-password")
+    Call<Map<String, String>> sendOtp(@Query("email") String email);
+
+    @POST("api/auth/verify-otp")
+    Call<Map<String, String>> verifyOtp(@Query("email") String email, @Query("otp") String otp);
+
+    @POST("api/auth/reset-password")
+    Call<Map<String, String>> resetPassword(@Query("email") String email, @Query("newPassword") String newPassword);
+
     // ===================== DONOR =====================
 
     @POST("api/donors/register")
