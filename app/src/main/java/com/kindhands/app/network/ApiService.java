@@ -3,7 +3,6 @@ package com.kindhands.app.network;
 import com.kindhands.app.model.*;
 import java.util.List;
 import java.util.Map;
-
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -11,26 +10,21 @@ import retrofit2.Call;
 import retrofit2.http.*;
 
 public interface ApiService {
+    // ===================== AUTH / USER =====================
+    @POST("api/auth/register")
+    Call<Map<String, String>> registerUser(@Body User user);
 
-    // ===================== USER AUTH =====================
+    @POST("api/auth/login")
+    Call<User> loginUser(@Body User user);
 
-    @POST("api/users/register")
-    Call<String> registerUser(@Body User user);
+    @POST("api/auth/forgot-password")
+    Call<Map<String, String>> sendOtp(@Query("email") String email);
 
-    @POST("api/users/login")
-    Call<User> loginUser(@Body Map<String, String> data);
+    @POST("api/auth/verify-otp")
+    Call<Map<String, String>> verifyOtp(@Query("email") String email, @Query("otp") String otp);
 
-    // SEND OTP TO EMAIL
-    @POST("api/users/forgot-password")
-    Call<String> sendOtp(@Query("email") String email);
-
-    // RESET PASSWORD + OTP VERIFICATION (SAME API)
-    @POST("api/users/reset-password")
-    Call<String> resetPassword(
-            @Query("email") String email,
-            @Query("otp") String otp,
-            @Query("newPassword") String newPassword
-    );
+    @POST("api/auth/reset-password")
+    Call<Map<String, String>> resetPassword(@Query("email") String email, @Query("newPassword") String newPassword);
 
     // ===================== DONOR =====================
     @POST("api/donors/register")
