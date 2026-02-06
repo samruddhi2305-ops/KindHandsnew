@@ -46,7 +46,7 @@ public class ForgotPasswordOtpActivity extends AppCompatActivity {
             verifyOtpFromServer(otp);
         });
     }
-
+    
     private void verifyOtpFromServer(String otp) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         apiService.verifyOtp(email, otp).enqueue(new Callback<Map<String, String>>() {

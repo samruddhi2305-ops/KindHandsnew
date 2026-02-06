@@ -1,7 +1,6 @@
 package com.kindhands.app.network;
 
 import com.kindhands.app.model.*;
-
 import java.util.List;
 import java.util.Map;
 
@@ -13,25 +12,27 @@ import retrofit2.http.*;
 
 public interface ApiService {
 
-    // ===================== AUTH / USER =====================
+    // ===================== USER AUTH =====================
 
-    @POST("api/auth/register")
-    Call<Map<String, String>> registerUser(@Body User user);
+    @POST("api/users/register")
+    Call<String> registerUser(@Body User user);
 
-    @POST("api/auth/login")
-    Call<User> loginUser(@Body User user);
+    @POST("api/users/login")
+    Call<User> loginUser(@Body Map<String, String> data);
 
-    @POST("api/auth/forgot-password")
-    Call<Map<String, String>> sendOtp(@Query("email") String email);
+    // SEND OTP TO EMAIL
+    @POST("api/users/forgot-password")
+    Call<String> sendOtp(@Query("email") String email);
 
-    @POST("api/auth/verify-otp")
-    Call<Map<String, String>> verifyOtp(@Query("email") String email, @Query("otp") String otp);
-
-    @POST("api/auth/reset-password")
-    Call<Map<String, String>> resetPassword(@Query("email") String email, @Query("newPassword") String newPassword);
+    // RESET PASSWORD + OTP VERIFICATION (SAME API)
+    @POST("api/users/reset-password")
+    Call<String> resetPassword(
+            @Query("email") String email,
+            @Query("otp") String otp,
+            @Query("newPassword") String newPassword
+    );
 
     // ===================== DONOR =====================
-
     @POST("api/donors/register")
     Call<User> registerDonor(@Body User user);
 
@@ -39,7 +40,6 @@ public interface ApiService {
     Call<User> loginDonor(@Body User user);
 
     // ===================== ORGANIZATION =====================
-
     @Multipart
     @POST("api/organizations/register")
     Call<String> registerOrganization(
@@ -54,12 +54,10 @@ public interface ApiService {
             @Part MultipartBody.Part document
     );
 
-
     @POST("api/organizations/login")
     Call<Organization> loginOrganization(@Body OrganizationLoginRequest loginRequest);
 
     // ===================== ADMIN =====================
-
     @GET("api/organizations/admin/pending")
     Call<List<Organization>> getPendingOrganizations();
 
@@ -73,7 +71,6 @@ public interface ApiService {
     Call<ResponseBody> viewDoc(@Path("id") Long id);
 
     // ===================== DONATION REQUESTS =====================
-
     @GET("requests/open")
     Call<List<DonationRequest>> getOpenRequests();
 
