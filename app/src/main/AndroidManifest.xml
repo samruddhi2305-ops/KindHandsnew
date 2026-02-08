@@ -15,6 +15,7 @@
         android:theme="@style/Theme.KindHands"
         android:usesCleartextTraffic="true">
 
+        <!-- Splash -->
         <activity
             android:name=".SplashActivity"
             android:exported="true">
@@ -28,10 +29,6 @@
             android:name=".LanguageSelectionActivity"
             android:exported="false" />
 
-        <!--<activity
-            android:name=".MActivity"
-            android:exported="false" />-->
-
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
@@ -39,33 +36,42 @@
         <activity
             android:name=".RoleSelectionActivity"
             android:exported="false" />
+
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
+
         <activity
             android:name=".AddDonationActivity"
             android:exported="false" />
-       <!-- <activity
-            android:name=".DonationDetailsActivity"
-            android:exported="false" />-->
+
         <activity
             android:name=".RegisterOrganizationActivity"
             android:exported="false" />
+
+        <!-- 🔥 IMPORTANT FIX HERE -->
+        <activity
+            android:name=".OrganizationDashboardActivity"
+            android:exported="true" />
+
         <activity
             android:name=".AdminDashboardActivity"
             android:exported="false" />
 
-        <!-- Merged Forgot Password Activities -->
+        <!-- Forgot Password Flow -->
         <activity
             android:name=".ForgotPasswordPhoneActivity"
             android:exported="false" />
+
         <activity
             android:name=".ForgotPasswordOtpActivity"
             android:exported="false" />
+
         <activity
             android:name=".ResetPasswordActivity"
             android:exported="false" />
 
+        <!-- File Provider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

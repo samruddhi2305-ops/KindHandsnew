@@ -10,6 +10,7 @@ import retrofit2.Call;
 import retrofit2.http.*;
 
 public interface ApiService {
+
     // ===================== AUTH / USER =====================
     @POST("api/auth/register")
     Call<Map<String, String>> registerUser(@Body User user);
@@ -17,14 +18,24 @@ public interface ApiService {
     @POST("api/auth/login")
     Call<User> loginUser(@Body User user);
 
-    @POST("api/auth/forgot-password")
-    Call<Map<String, String>> sendOtp(@Query("email") String email);
+        @POST("api/users/forgot-password")
+        Call<Map<String, String>> sendOtp(
+                @Query("email") String email
+        );
 
-    @POST("api/auth/verify-otp")
-    Call<Map<String, String>> verifyOtp(@Query("email") String email, @Query("otp") String otp);
+        @POST("api/users/verify-otp")
+        Call<Map<String, String>> verifyOtp(
+                @Query("email") String email,
+                @Query("otp") String otp
+        );
 
-    @POST("api/auth/reset-password")
-    Call<Map<String, String>> resetPassword(@Query("email") String email, @Query("newPassword") String newPassword);
+        @POST("api/users/reset-password")
+        Call<Map<String, String>> resetPassword(
+                @Query("email") String email,
+                @Query("otp") String otp,
+                @Query("newPassword") String newPassword
+        );
+
 
     // ===================== DONOR =====================
     @POST("api/donors/register")
@@ -70,4 +81,6 @@ public interface ApiService {
 
     @POST("requests/create")
     Call<DonationRequest> createRequest(@Body DonationRequest request);
+    @POST("password/reset")
+    Call<Map<String, String>> resetPassword(Map<String, String> data);
 }
