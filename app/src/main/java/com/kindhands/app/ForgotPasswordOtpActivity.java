@@ -31,10 +31,10 @@ public class ForgotPasswordOtpActivity extends AppCompatActivity {
         etOtp = findViewById(R.id.etOtp);
         btnVerifyOtp = findViewById(R.id.btnVerifyOtp);
 
-        // ✅ Correct way to get email
+        // ✅ Email from previous screen
         email = getIntent().getStringExtra("EMAIL");
 
-        if (email == null || email.isEmpty()) {
+        if (email == null || email.trim().isEmpty()) {
             Toast.makeText(this, "Email not found. Please try again.", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -43,17 +43,21 @@ public class ForgotPasswordOtpActivity extends AppCompatActivity {
         btnVerifyOtp.setOnClickListener(v -> {
             String otp = etOtp.getText().toString().trim();
 
-            if (otp.isEmpty() || otp.length() != 6) {
-                etOtp.setError("Enter valid 6-digit OTP");
-                etOtp.requestFocus();
+            if (otp.isEmpty()) {
+                etOtp.setError("OTP is required");
                 return;
             }
 
-            verifyOtpFromServer(otp);
+            if (otp.length() != 6) {
+                etOtp.setError("Enter valid 6-digit OTP");
+                return;
+            }
+
+            verifyOtp(email, otp);
         });
     }
 
-    private void verifyOtpFromServer(String otp) {
+    private void verifyOtp(String email, String otp) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
 
         apiService.verifyOtp(email, otp).enqueue(new Callback<Map<String, String>>() {
@@ -62,29 +66,38 @@ public class ForgotPasswordOtpActivity extends AppCompatActivity {
                                    Response<Map<String, String>> response) {
 
                 if (response.isSuccessful()) {
-                    Toast.makeText(ForgotPasswordOtpActivity.this,
-                            "OTP Verified Successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(
+                            ForgotPasswordOtpActivity.this,
+                            "OTP Verified Successfully",
+                            Toast.LENGTH_SHORT
+                    ).show();
 
+                    // ✅ VERY IMPORTANT: EMAIL + OTP पुढे पाठवतोय
                     Intent intent = new Intent(
                             ForgotPasswordOtpActivity.this,
                             ResetPasswordActivity.class
                     );
                     intent.putExtra("EMAIL", email);
+                    intent.putExtra("OTP", otp);
                     startActivity(intent);
                     finish();
 
                 } else {
-                    Toast.makeText(ForgotPasswordOtpActivity.this,
+                    Toast.makeText(
+                            ForgotPasswordOtpActivity.this,
                             "Invalid OTP. Please try again.",
-                            Toast.LENGTH_SHORT).show();
+                            Toast.LENGTH_SHORT
+                    ).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Map<String, String>> call, Throwable t) {
-                Toast.makeText(ForgotPasswordOtpActivity.this,
+                Toast.makeText(
+                        ForgotPasswordOtpActivity.this,
                         "Network Error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_SHORT
+                ).show();
             }
         });
     }

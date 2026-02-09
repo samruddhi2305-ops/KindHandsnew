@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -22,7 +21,8 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
     private EditText etNewPassword, etConfirmPassword;
     private Button btnResetPassword;
-    private String email;
+
+    private String email, otp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,15 +33,23 @@ public class ResetPasswordActivity extends AppCompatActivity {
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         btnResetPassword = findViewById(R.id.btnResetPassword);
 
-        // ✅ EMAIL from previous screen
+        // ✅ Email & OTP from previous screen
         email = getIntent().getStringExtra("EMAIL");
+        otp = getIntent().getStringExtra("OTP");
+
+        if (email == null || email.trim().isEmpty()
+                || otp == null || otp.trim().isEmpty()) {
+            Toast.makeText(this, "Invalid reset request", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         btnResetPassword.setOnClickListener(v -> {
             String newPassword = etNewPassword.getText().toString().trim();
             String confirmPassword = etConfirmPassword.getText().toString().trim();
 
             if (newPassword.isEmpty()) {
-                etNewPassword.setError("Password cannot be empty");
+                etNewPassword.setError("Password required");
                 return;
             }
 
@@ -50,48 +58,50 @@ public class ResetPasswordActivity extends AppCompatActivity {
                 return;
             }
 
-            resetPasswordApi(email, newPassword);
+            resetPassword(email, otp, newPassword);
         });
     }
 
-    private void resetPasswordApi(String email, String newPassword) {
-
+    private void resetPassword(String email, String otp, String newPassword) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
 
-        Map<String, String> data = new HashMap<>();
-        data.put("email", email);
-        data.put("newPassword", newPassword);
+        apiService.resetPassword(email, otp, newPassword)
+                .enqueue(new Callback<Map<String, String>>() {
+                    @Override
+                    public void onResponse(Call<Map<String, String>> call,
+                                           Response<Map<String, String>> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(
+                                    ResetPasswordActivity.this,
+                                    "Password reset successful!",
+                                    Toast.LENGTH_SHORT
+                            ).show();
 
-        apiService.resetPassword(data).enqueue(new Callback<Map<String, String>>() {
-            @Override
-            public void onResponse(Call<Map<String, String>> call,
-                                   Response<Map<String, String>> response) {
+                            Intent intent = new Intent(
+                                    ResetPasswordActivity.this,
+                                    LoginActivity.class
+                            );
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
 
-                if (response.isSuccessful()) {
-                    Toast.makeText(ResetPasswordActivity.this,
-                            "Password reset successful!",
-                            Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(
+                                    ResetPasswordActivity.this,
+                                    "Reset failed. Invalid OTP or email",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
 
-                    Intent intent = new Intent(
-                            ResetPasswordActivity.this,
-                            LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                            Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-
-                } else {
-                    Toast.makeText(ResetPasswordActivity.this,
-                            "Failed to reset password",
-                            Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Map<String, String>> call, Throwable t) {
-                Toast.makeText(ResetPasswordActivity.this,
-                        "Network Error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    public void onFailure(Call<Map<String, String>> call, Throwable t) {
+                        Toast.makeText(
+                                ResetPasswordActivity.this,
+                                "Network error: " + t.getMessage(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                });
     }
 }

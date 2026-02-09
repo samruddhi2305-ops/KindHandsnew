@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -36,7 +35,7 @@ public class ForgotPasswordPhoneActivity extends AppCompatActivity {
             String email = etEmail.getText().toString().trim();
 
             if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                etEmail.setError("Valid email required");
+                etEmail.setError("Enter valid email");
                 etEmail.requestFocus();
                 return;
             }
@@ -46,7 +45,6 @@ public class ForgotPasswordPhoneActivity extends AppCompatActivity {
     }
 
     private void sendOtpToEmail(String email) {
-
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
 
         apiService.sendOtp(email).enqueue(new Callback<Map<String, String>>() {
@@ -61,9 +59,11 @@ public class ForgotPasswordPhoneActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT
                     ).show();
 
-                    Intent intent =
-                            new Intent(ForgotPasswordPhoneActivity.this,
-                                    ForgotPasswordOtpActivity.class);
+                    // 👉 Next screen: OTP verify
+                    Intent intent = new Intent(
+                            ForgotPasswordPhoneActivity.this,
+                            ForgotPasswordOtpActivity.class
+                    );
                     intent.putExtra("EMAIL", email);
                     startActivity(intent);
 

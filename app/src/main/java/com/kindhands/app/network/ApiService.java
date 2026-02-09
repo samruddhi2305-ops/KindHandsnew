@@ -11,33 +11,39 @@ import retrofit2.http.*;
 
 public interface ApiService {
 
-    // ===================== AUTH / USER =====================
+    // ===================== AUTH =====================
+
     @POST("api/auth/register")
-    Call<Map<String, String>> registerUser(@Body User user);
+    Call<User> registerUser(@Body User user);
 
     @POST("api/auth/login")
     Call<User> loginUser(@Body User user);
 
-        @POST("api/users/forgot-password")
-        Call<Map<String, String>> sendOtp(
-                @Query("email") String email
-        );
+    // -------- FORGOT PASSWORD FLOW (EMAIL + OTP) --------
 
-        @POST("api/users/verify-otp")
-        Call<Map<String, String>> verifyOtp(
-                @Query("email") String email,
-                @Query("otp") String otp
-        );
+    // 1️⃣ Send OTP to Email
+    @POST("api/auth/forgot-password")
+    Call<Map<String, String>> sendOtp(
+            @Query("email") String email
+    );
 
-        @POST("api/users/reset-password")
-        Call<Map<String, String>> resetPassword(
-                @Query("email") String email,
-                @Query("otp") String otp,
-                @Query("newPassword") String newPassword
-        );
+    // 2️⃣ Verify OTP
+    @POST("api/auth/verify-otp")
+    Call<Map<String, String>> verifyOtp(
+            @Query("email") String email,
+            @Query("otp") String otp
+    );
 
+    // 3️⃣ Reset Password (OTP compulsory)
+    @POST("api/auth/reset-password")
+    Call<Map<String, String>> resetPassword(
+            @Query("email") String email,
+            @Query("otp") String otp,
+            @Query("newPassword") String newPassword
+    );
 
     // ===================== DONOR =====================
+
     @POST("api/donors/register")
     Call<User> registerDonor(@Body User user);
 
@@ -45,6 +51,7 @@ public interface ApiService {
     Call<User> loginDonor(@Body User user);
 
     // ===================== ORGANIZATION =====================
+
     @Multipart
     @POST("api/organizations/register")
     Call<String> registerOrganization(
@@ -60,9 +67,12 @@ public interface ApiService {
     );
 
     @POST("api/organizations/login")
-    Call<Organization> loginOrganization(@Body OrganizationLoginRequest loginRequest);
+    Call<Organization> loginOrganization(
+            @Body OrganizationLoginRequest loginRequest
+    );
 
     // ===================== ADMIN =====================
+
     @GET("api/organizations/admin/pending")
     Call<List<Organization>> getPendingOrganizations();
 
@@ -76,11 +86,12 @@ public interface ApiService {
     Call<ResponseBody> viewDoc(@Path("id") Long id);
 
     // ===================== DONATION REQUESTS =====================
+
     @GET("requests/open")
     Call<List<DonationRequest>> getOpenRequests();
 
     @POST("requests/create")
-    Call<DonationRequest> createRequest(@Body DonationRequest request);
-    @POST("password/reset")
-    Call<Map<String, String>> resetPassword(Map<String, String> data);
+    Call<DonationRequest> createRequest(
+            @Body DonationRequest request
+    );
 }
