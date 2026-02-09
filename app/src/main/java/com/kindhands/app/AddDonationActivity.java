@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.kindhands.app.model.DonationRequest;
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
@@ -23,6 +24,8 @@ import retrofit2.Response;
 public class AddDonationActivity extends AppCompatActivity {
 
     private TextView tvRequirements;
+    private SwitchMaterial switchPublicHistory;
+    private Button btnViewPublicHistory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,24 +33,10 @@ public class AddDonationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_donation);
 
         tvRequirements = findViewById(R.id.tvOrgRequirements);
+        switchPublicHistory = findViewById(R.id.switchPublicHistory);
+        btnViewPublicHistory = findViewById(R.id.btnViewPublicHistory);
 
-       /* // Find CardViews
-        View clothes = findViewById(R.id.cardClothes);
-        View food = findViewById(R.id.cardFood);
-        View books = findViewById(R.id.cardBooks);
-        View medical = findViewById(R.id.cardMedical);
-        View toys = findViewById(R.id.cardToys);
-        View stationery = findViewById(R.id.cardStationery);*/
-
-       /* // Set Click Listeners
-        if (clothes != null) clothes.setOnClickListener(v -> openForm("clothes"));
-        if (food != null) food.setOnClickListener(v -> openForm("food"));
-        if (books != null) books.setOnClickListener(v -> openForm("books"));
-        if (medical != null) medical.setOnClickListener(v -> openForm("medical"));
-        if (toys != null) toys.setOnClickListener(v -> openForm("toys"));
-        if (stationery != null) stationery.setOnClickListener(v -> openForm("stationery"));*/
-
-        // Add Logout Button Logic
+        // Logout Logic
         Button btnLogout = findViewById(R.id.btnLogout); 
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
@@ -59,8 +48,39 @@ public class AddDonationActivity extends AppCompatActivity {
             });
         }
         
-        // Fetch NGO Requirements
+        // Privacy Toggle
+        if (switchPublicHistory != null) {
+            switchPublicHistory.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                updatePrivacy(isChecked);
+            });
+        }
+
+        // View Public History
+        if (btnViewPublicHistory != null) {
+            btnViewPublicHistory.setOnClickListener(v -> {
+                startActivity(new Intent(this, PublicHistoryActivity.class));
+            });
+        }
+
         fetchRequirements();
+    }
+
+    private void updatePrivacy(boolean isPublic) {
+        String email = SharedPrefManager.getInstance(this).getUserEmail();
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        apiService.updateDonorPrivacy(email, isPublic).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(AddDonationActivity.this, "Privacy updated", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(AddDonationActivity.this, "Failed to update privacy", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void fetchRequirements() {
@@ -98,10 +118,4 @@ public class AddDonationActivity extends AppCompatActivity {
             }
         });
     }
-
-    /*private void openForm(String category) {
-        Intent intent = new Intent(this,DonationDetailsActivity.class);
-       intent.putExtra("category", category);
-      startActivity(intent);
-    }*/
 }

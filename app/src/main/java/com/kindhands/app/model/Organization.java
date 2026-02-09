@@ -10,17 +10,13 @@ public class Organization {
     private String type;
     private String address;
     private String pincode;
-
-    // 🔥 MUST match backend
     private String documentPath;
-
     private String status;
     private Long userId;
+    private boolean publicProfile; // ✅ Added to track privacy preference
 
-    // Empty constructor (IMPORTANT for Retrofit)
     public Organization() {}
 
-    // Optional constructor
     public Organization(String name, String email, String password,
                         String contact, String type, String address,
                         String pincode, String documentPath, Long userId) {
@@ -33,6 +29,7 @@ public class Organization {
         this.pincode = pincode;
         this.userId = userId;
         this.documentPath = documentPath;
+        this.publicProfile = false;
     }
 
     // ===== Getters & Setters =====
@@ -69,4 +66,7 @@ public class Organization {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public boolean isPublicProfile() { return publicProfile; }
+    public void setPublicProfile(boolean publicProfile) { this.publicProfile = publicProfile; }
 }

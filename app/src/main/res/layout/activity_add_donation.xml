@@ -23,7 +23,7 @@
                 android:layout_toStartOf="@id/btnLogout"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="8dp"
-                android:text="What would you like to donate?"
+                android:text="Welcome Donor"
                 android:textColor="@color/primary_text"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -39,258 +39,75 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:text="Logout"
-                android:textSize="12sp"
-                android:visibility="visible" />
+                android:textSize="12sp" />
 
         </RelativeLayout>
 
-       <!-- <GridLayout
+        <!-- Privacy Toggle and Public View Button -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:alignmentMode="alignMargins"
-            android:columnCount="2"
-            android:columnOrderPreserved="false"
-            android:useDefaultMargins="true">
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
 
-            //Clothes Card
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardClothes"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_margin="8dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                android:orientation="vertical"
+                android:padding="12dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_cloths" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:padding="12dp"
-                        android:text="Clothes"
-                        android:textColor="#F5F7FA"
-                        android:background="#8727B0"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:layout_weight="1"
+                        android:text="Show my donation history publicly"
+                        android:textSize="14sp"
+                        android:textStyle="bold"/>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchPublicHistory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
 
-             //Food Card
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardFood"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_margin="8dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
+                <Button
+                    android:id="@+id/btnViewPublicHistory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:text="View Community History"
+                    android:layout_marginTop="8dp"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_food" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:padding="12dp"
-                        android:text="Food"
-                        android:textColor="#F5F7FA"
-                        android:background="#8727B0"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            // Books Card
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardBooks"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_margin="8dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_books" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:padding="12dp"
-                        android:text="Books"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/book"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            //Medical Card
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardMedical"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_margin="8dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_medical" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:padding="12dp"
-                        android:text="Medical Kit"
-                        android:textColor="#F5F7FA"
-                        android:background="#8727B0"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            // Toys Card
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardToys"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_margin="8dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_toys" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:padding="12dp"
-                        android:text="Toys"
-                        android:textColor="#F5F7FA"
-                        android:background="#8727B0"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            //Stationery Card
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardStationery"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_margin="8dp"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="100dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/img_stationery" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:padding="12dp"
-                        android:text="Stationery"
-                        android:textColor="#F5F7FA"
-                        android:background="#8727B0"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-        </GridLayout>-->
-
-        //Requirements Section (Moved Below Donation Cards)
         <TextView
-            android:id="@+id/lblRequirements"
-            android:layout_width="187dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="4dp"
-            android:background="#8727B0"
-            android:text="Organization Needs:"
-            android:textColor="#F5F7FA"
+            android:text="What would you like to donate?"
+            android:textColor="@color/primary_text"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:visibility="visible" />
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Organization Needs Section -->
+        <TextView
+            android:id="@+id/lblRequirements"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp"
+            android:background="#8727B0"
+            android:text=" Organization Needs: "
+            android:textColor="#F5F7FA"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -307,8 +124,7 @@
                 android:padding="12dp"
                 android:text="Loading requirements..."
                 android:textColor="#333333"
-                android:textSize="14sp"
-                android:visibility="visible" />
+                android:textSize="14sp" />
         </androidx.cardview.widget.CardView>
 
     </LinearLayout>

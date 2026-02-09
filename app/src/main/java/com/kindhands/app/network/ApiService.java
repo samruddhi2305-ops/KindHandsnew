@@ -3,6 +3,7 @@ package com.kindhands.app.network;
 import com.kindhands.app.model.*;
 import java.util.List;
 import java.util.Map;
+
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -19,28 +20,16 @@ public interface ApiService {
     @POST("api/auth/login")
     Call<User> loginUser(@Body User user);
 
-    // -------- FORGOT PASSWORD FLOW (EMAIL + OTP) --------
+    // -------- FORGOT PASSWORD --------
 
-    // 1️⃣ Send OTP to Email
     @POST("api/auth/forgot-password")
-    Call<Map<String, String>> sendOtp(
-            @Query("email") String email
-    );
+    Call<Map<String, String>> sendOtp(@Query("email") String email);
 
-    // 2️⃣ Verify OTP
     @POST("api/auth/verify-otp")
-    Call<Map<String, String>> verifyOtp(
-            @Query("email") String email,
-            @Query("otp") String otp
-    );
+    Call<Map<String, String>> verifyOtp(@Query("email") String email, @Query("otp") String otp);
 
-    // 3️⃣ Reset Password (OTP compulsory)
     @POST("api/auth/reset-password")
-    Call<Map<String, String>> resetPassword(
-            @Query("email") String email,
-            @Query("otp") String otp,
-            @Query("newPassword") String newPassword
-    );
+    Call<Map<String, String>> resetPassword(@Query("email") String email, @Query("otp") String otp, @Query("newPassword") String newPassword);
 
     // ===================== DONOR =====================
 
@@ -49,6 +38,12 @@ public interface ApiService {
 
     @POST("api/donors/login")
     Call<User> loginDonor(@Body User user);
+
+    @PUT("api/donors/privacy")
+    Call<Void> updateDonorPrivacy(@Query("email") String email, @Query("isPublic") boolean isPublic);
+
+    @GET("api/donors/history/public")
+    Call<List<DonationRequest>> getPublicDonationHistory();
 
     // ===================== ORGANIZATION =====================
 
@@ -67,9 +62,13 @@ public interface ApiService {
     );
 
     @POST("api/organizations/login")
-    Call<Organization> loginOrganization(
-            @Body OrganizationLoginRequest loginRequest
-    );
+    Call<Organization> loginOrganization(@Body OrganizationLoginRequest loginRequest);
+
+    @PUT("api/organizations/privacy")
+    Call<Void> updateOrgPrivacy(@Query("email") String email, @Query("isPublic") boolean isPublic);
+
+    @GET("api/organizations/public")
+    Call<List<Organization>> getPublicOrganizations();
 
     // ===================== ADMIN =====================
 
@@ -91,7 +90,5 @@ public interface ApiService {
     Call<List<DonationRequest>> getOpenRequests();
 
     @POST("requests/create")
-    Call<DonationRequest> createRequest(
-            @Body DonationRequest request
-    );
+    Call<DonationRequest> createRequest(@Body DonationRequest request);
 }

@@ -45,11 +45,13 @@ public class ForgotPasswordOtpActivity extends AppCompatActivity {
 
             if (otp.isEmpty()) {
                 etOtp.setError("OTP is required");
+                etOtp.requestFocus();
                 return;
             }
 
             if (otp.length() != 6) {
                 etOtp.setError("Enter valid 6-digit OTP");
+                etOtp.requestFocus();
                 return;
             }
 
@@ -72,7 +74,7 @@ public class ForgotPasswordOtpActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT
                     ).show();
 
-                    // ✅ VERY IMPORTANT: EMAIL + OTP पुढे पाठवतोय
+                    // ✅ IMPORTANT: Send EMAIL + OTP to ResetPasswordActivity
                     Intent intent = new Intent(
                             ForgotPasswordOtpActivity.this,
                             ResetPasswordActivity.class

@@ -59,7 +59,7 @@ public class ForgotPasswordPhoneActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT
                     ).show();
 
-                    // 👉 Next screen: OTP verify
+                    // 👉 Move to OTP verification screen
                     Intent intent = new Intent(
                             ForgotPasswordPhoneActivity.this,
                             ForgotPasswordOtpActivity.class

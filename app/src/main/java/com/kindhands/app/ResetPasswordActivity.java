@@ -50,11 +50,19 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
             if (newPassword.isEmpty()) {
                 etNewPassword.setError("Password required");
+                etNewPassword.requestFocus();
+                return;
+            }
+
+            if (newPassword.length() < 6) {
+                etNewPassword.setError("Password must be at least 6 characters");
+                etNewPassword.requestFocus();
                 return;
             }
 
             if (!newPassword.equals(confirmPassword)) {
                 etConfirmPassword.setError("Passwords do not match");
+                etConfirmPassword.requestFocus();
                 return;
             }
 
@@ -70,6 +78,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<Map<String, String>> call,
                                            Response<Map<String, String>> response) {
+
                         if (response.isSuccessful()) {
                             Toast.makeText(
                                     ResetPasswordActivity.this,
@@ -81,8 +90,8 @@ public class ResetPasswordActivity extends AppCompatActivity {
                                     ResetPasswordActivity.this,
                                     LoginActivity.class
                             );
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
 
                         } else {

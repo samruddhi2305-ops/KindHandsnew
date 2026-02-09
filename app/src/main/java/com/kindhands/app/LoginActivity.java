@@ -2,7 +2,7 @@ package com.kindhands.app;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;import android.widget.Button;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,156 +22,167 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText etEmail;
-    private EditText etPassword;
+    private EditText etEmail, etPassword;
     private Button btnLogin;
-    private TextView tvForgotPassword;
-    private TextView tvRegister;
+    private TextView tvForgotPassword, tvRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // CHECK IF ALREADY LOGGED IN
+        // ✅ Auto-login if already logged in
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
-            navigateToDashboard(); // Redirect based on stored user type
+            navigateToDashboard();
             return;
         }
 
         setContentView(R.layout.login);
 
-        // Initialize views
+        // Init views
         etEmail = findViewById(R.id.etLoginEmail);
         etPassword = findViewById(R.id.etLoginPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
         tvRegister = findViewById(R.id.tvGoToRegister);
 
-        // Forgot Password Click Listener
+        // ✅ Forgot password → Email based flow
         tvForgotPassword.setOnClickListener(v -> {
-            // Navigate to the activity for entering a phone number
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordPhoneActivity.class);
             startActivity(intent);
         });
 
-        // Login Button Click
+        // Login click
         btnLogin.setOnClickListener(v -> {
-
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
-            // Validation
             if (email.isEmpty()) {
-                etEmail.setError("Email is required");
-                etEmail.requestFocus();
+                etEmail.setError("Email required");
                 return;
             }
 
             if (password.isEmpty()) {
-                etPassword.setError("Password is required");
-                etPassword.requestFocus();
+                etPassword.setError("Password required");
                 return;
             }
 
-            // CHECK FOR ADMIN LOGIN FIRST (Case Insensitive Email)
-            if ("team.kindhands12@gmail.com".equalsIgnoreCase(email) && "#KINDHANDS26".equals(password)) {
-                Toast.makeText(LoginActivity.this, "Welcome Admin!", Toast.LENGTH_SHORT).show();
-                SharedPrefManager.getInstance(LoginActivity.this).saveUser("Admin", "admin@kindhands.com", "ADMIN");
+            // 🔐 ADMIN LOGIN (Hardcoded)
+            if ("team.kindhands12@gmail.com".equalsIgnoreCase(email)
+                    && "#KINDHANDS26".equals(password)) {
+
+                SharedPrefManager.getInstance(this)
+                        .saveUser("Admin", email, "ADMIN");
+
+                Toast.makeText(this, "Welcome Admin", Toast.LENGTH_SHORT).show();
                 navigateToDashboard();
-                return; // Stop further execution
+                return;
             }
 
-            // IF NOT ADMIN, TRY DONOR LOGIN
-            ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-            User loginUser = new User(email, password);
-            Call<User> callDonor = apiService.loginDonor(loginUser);
-
-            callDonor.enqueue(new Callback<User>() {
-                @Override
-                public void onResponse(Call<User> call, Response<User> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        User user = response.body();
-                        Toast.makeText(LoginActivity.this, "Welcome Donor " + user.getName(), Toast.LENGTH_SHORT).show();
-
-                        SharedPrefManager.getInstance(LoginActivity.this).saveUser(user.getName(), user.getEmail(), "DONOR");
-                        navigateToDashboard();
-                    } else {
-                        // IF DONOR LOGIN FAILS, TRY ORGANIZATION LOGIN
-                        tryOrganizationLogin(email, password);
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<User> call, Throwable t) {
-                    // IF NETWORK ERROR OR OTHER ISSUE, TRY ORGANIZATION LOGIN ANYWAY (OR SHOW ERROR)
-                    tryOrganizationLogin(email, password);
-                }
-            });
+            // Try DONOR login first
+            loginDonor(email, password);
         });
 
-        // Register Click
+        // Register
         tvRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, RoleSelectionActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, RoleSelectionActivity.class));
         });
     }
 
-    private void tryOrganizationLogin(String email, String password) {
+    // ================= DONOR LOGIN =================
+    private void loginDonor(String email, String password) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        OrganizationLoginRequest loginRequest = new OrganizationLoginRequest(email, password);
-        Call<Organization> callOrg = apiService.loginOrganization(loginRequest);
+        User user = new User(email, password);
 
-        callOrg.enqueue(new Callback<Organization>() {
+        apiService.loginDonor(user).enqueue(new Callback<User>() {
             @Override
-            public void onResponse(Call<Organization> call, Response<Organization> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Organization org = response.body();
-                    Toast.makeText(LoginActivity.this, "Welcome " + org.getName(), Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<User> call, Response<User> response) {
 
-                    SharedPrefManager.getInstance(LoginActivity.this).saveUser(org.getName(), org.getEmail(), "ORGANIZATION");
+                if (response.isSuccessful() && response.body() != null) {
+                    User donor = response.body();
+
+                    SharedPrefManager.getInstance(LoginActivity.this)
+                            .saveUser(donor.getName(), donor.getEmail(), "DONOR");
+
+                    Toast.makeText(LoginActivity.this,
+                            "Welcome " + donor.getName(), Toast.LENGTH_SHORT).show();
+
                     navigateToDashboard();
                 } else {
-                    Toast.makeText(LoginActivity.this, "Login Failed: Invalid Credentials", Toast.LENGTH_SHORT).show();
+                    // ❌ Donor failed → try organization
+                    loginOrganization(email, password);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                // Network or other issue → try org
+                loginOrganization(email, password);
+            }
+        });
+    }
+
+    // ================= ORGANIZATION LOGIN =================
+    private void loginOrganization(String email, String password) {
+        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        OrganizationLoginRequest request =
+                new OrganizationLoginRequest(email, password);
+
+        apiService.loginOrganization(request).enqueue(new Callback<Organization>() {
+            @Override
+            public void onResponse(Call<Organization> call,
+                                   Response<Organization> response) {
+
+                if (response.isSuccessful() && response.body() != null) {
+                    Organization org = response.body();
+
+                    SharedPrefManager.getInstance(LoginActivity.this)
+                            .saveUser(org.getName(), org.getEmail(), "ORGANIZATION");
+
+                    Toast.makeText(LoginActivity.this,
+                            "Welcome " + org.getName(), Toast.LENGTH_SHORT).show();
+
+                    navigateToDashboard();
+                } else {
+                    Toast.makeText(LoginActivity.this,
+                            "Invalid email or password", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Organization> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this,
+                        "Login error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    // ================= NAVIGATION =================
     private void navigateToDashboard() {
-        String userType = SharedPrefManager.getInstance(this).getUserType();
+        String role = SharedPrefManager.getInstance(this).getUserType();
         Intent intent;
 
-        if (userType != null) {
-            switch (userType) {
-                case "ADMIN":
-                    intent = new Intent(LoginActivity.this, AdminDashboardActivity.class);
-                    break;
-                case "DONOR":
-                    intent = new Intent(LoginActivity.this, AddDonationActivity.class);
-                    break;
-                case "ORGANIZATION":
-                    // Replace with your actual Organization Dashboard activity
-                    intent = new Intent(LoginActivity.this, OrganizationDashboardActivity.class); 
-                    break;
-                default:
-                    // Fallback, maybe to a generic home screen or back to login
-                    intent = new Intent(LoginActivity.this, LoginActivity.class);
-                    break;
-            }
+        if (role == null) {
+            intent = new Intent(this, LoginActivity.class);
         } else {
-            // If userType is null, default to login
-            intent = new Intent(LoginActivity.this, LoginActivity.class);
+            switch (role) {
+                case "ADMIN":
+                    intent = new Intent(this, AdminDashboardActivity.class);
+                    break;
+
+                case "DONOR":
+                    intent = new Intent(this, AddDonationActivity.class);
+                    break;
+
+                case "ORGANIZATION":
+                    intent = new Intent(this, OrganizationDashboardActivity.class);
+                    break;
+
+                default:
+                    intent = new Intent(this, LoginActivity.class);
+            }
         }
 
         startActivity(intent);
         finish();
     }
 }
-//end of the file
-//1
-//2
