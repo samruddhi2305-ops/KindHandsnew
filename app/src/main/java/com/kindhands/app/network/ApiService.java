@@ -1,5 +1,6 @@
 package com.kindhands.app.network;
 
+import com.kindhands.app.ForgotPasswordActivity;
 import com.kindhands.app.model.*;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,9 @@ public interface ApiService {
     Call<User> loginUser(@Body User user);
 
     // -------- FORGOT PASSWORD --------
+
+    @POST("api/auth/forgot-password")
+    Call<ForgotPasswordActivity.ApiResponse> forgotPassword(@Query("email") String email);
 
     @POST("api/auth/forgot-password")
     Call<Map<String, String>> sendOtp(@Query("email") String email);

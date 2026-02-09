@@ -1,6 +1,5 @@
 package com.kindhands.app;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.widget.Button;
@@ -8,34 +7,34 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
+import com.google.gson.annotations.SerializedName;
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
 
-import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ForgotPasswordPhoneActivity extends AppCompatActivity {
+public class ForgotPasswordActivity extends AppCompatActivity {
 
     private EditText etEmail;
     private Button btnSendOtp;
+
+    public class ApiResponse {
+        @SerializedName("message")
+        private String message;
+
+        public String getMessage() {
+            return message;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password_phone);
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
-        }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
         etEmail = findViewById(R.id.etEmail);
         btnSendOtp = findViewById(R.id.btnSendOtp);
@@ -49,46 +48,35 @@ public class ForgotPasswordPhoneActivity extends AppCompatActivity {
                 return;
             }
 
-            sendOtpToEmail(email);
+            sendForgotPasswordRequest(email);
         });
     }
 
-    private void sendOtpToEmail(String email) {
+    private void sendForgotPasswordRequest(String email) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
 
-        apiService.sendOtp(email).enqueue(new Callback<Map<String, String>>() {
+        apiService.forgotPassword(email).enqueue(new Callback<ApiResponse>() {
             @Override
-            public void onResponse(Call<Map<String, String>> call,
-                                   Response<Map<String, String>> response) {
-
-                if (response.isSuccessful()) {
+            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(
-                            ForgotPasswordPhoneActivity.this,
-                            "OTP sent to " + email,
+                            ForgotPasswordActivity.this,
+                            response.body().getMessage(),
                             Toast.LENGTH_SHORT
                     ).show();
-
-                    // 👉 Move to OTP verification screen
-                    Intent intent = new Intent(
-                            ForgotPasswordPhoneActivity.this,
-                            ForgotPasswordOtpActivity.class
-                    );
-                    intent.putExtra("EMAIL", email);
-                    startActivity(intent);
-
                 } else {
-                    Toast.makeText(
-                            ForgotPasswordPhoneActivity.this,
-                            "Email not found",
+                     Toast.makeText(
+                            ForgotPasswordActivity.this,
+                            "Email not registered",
                             Toast.LENGTH_SHORT
                     ).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<Map<String, String>> call, Throwable t) {
+            public void onFailure(Call<ApiResponse> call, Throwable t) {
                 Toast.makeText(
-                        ForgotPasswordPhoneActivity.this,
+                        ForgotPasswordActivity.this,
                         "Network error: " + t.getMessage(),
                         Toast.LENGTH_SHORT
                 ).show();

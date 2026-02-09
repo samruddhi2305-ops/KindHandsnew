@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.kindhands.app.model.User;
 import com.kindhands.app.network.ApiService;
@@ -26,6 +27,14 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.register);
+
+            Toolbar toolbar = findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
             etName = findViewById(R.id.etRegisterName);
             etEmail = findViewById(R.id.etRegisterEmail);
@@ -139,4 +148,4 @@ public class RegisterActivity extends AppCompatActivity {
         }
         return true;
     }
-}//end of the file
+}
