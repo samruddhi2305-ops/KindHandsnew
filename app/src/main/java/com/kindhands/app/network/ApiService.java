@@ -61,7 +61,6 @@ public interface ApiService {
             @Part("type") RequestBody type,
             @Part("address") RequestBody address,
             @Part("pincode") RequestBody pincode,
-            @Part("userId") RequestBody userId,
             @Part MultipartBody.Part document
     );
 

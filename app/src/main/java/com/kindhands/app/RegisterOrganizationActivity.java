@@ -5,11 +5,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.widget.*;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
@@ -38,6 +40,14 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_organization);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
         etName = findViewById(R.id.etOrgName);
         etEmail = findViewById(R.id.etOrgEmail);
@@ -106,8 +116,28 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         String address = etAddress.getText().toString().trim();
         String pincode = etPincode.getText().toString().trim();
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || contact.isEmpty() || address.isEmpty() || pincode.isEmpty()) {
-            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
+        if (name.isEmpty()) {
+            etName.setError("Name required");
+            return;
+        }
+        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Valid email required");
+            return;
+        }
+        if (password.length() < 6) {
+            etPassword.setError("Password min 6 chars");
+            return;
+        }
+        if (contact.isEmpty()) {
+            etContact.setError("Contact required");
+            return;
+        }
+        if (address.isEmpty()) {
+            etAddress.setError("Address required");
+            return;
+        }
+        if (pincode.length() != 6) {
+            etPincode.setError("Valid 6-digit pincode required");
             return;
         }
 
@@ -121,9 +151,6 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         String rawType = spinnerType.getSelectedItem().toString();
         String type = rawType.equalsIgnoreCase("Orphanage") ? "ORPHANAGE" : "OLD_AGE_HOME";
 
-        // Generate a pseudo-unique ID for userId to avoid 'already exists' error on userId field
-        String tempUserId = String.valueOf(System.currentTimeMillis() % 100000);
-
         ApiService api = RetrofitClient.getClient().create(ApiService.class);
 
         Call<String> call = api.registerOrganization(
@@ -134,7 +161,6 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                 rb(type),
                 rb(address),
                 rb(pincode),
-                rb(tempUserId), 
                 MultipartBody.Part.createFormData(
                         "document",
                         file.getName(),
@@ -146,18 +172,13 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(RegisterOrganizationActivity.this, "Registered successfully!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterOrganizationActivity.this, "Registered successfully! Please wait for admin approval.", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
                     try {
                         String errorMsg = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
                         Log.e("ORG_REGISTER_ERROR", "Error: " + errorMsg);
-                        
-                        if (errorMsg.contains("already exists")) {
-                            Toast.makeText(RegisterOrganizationActivity.this, "Error: This Email or Organization is already registered.", Toast.LENGTH_LONG).show();
-                        } else {
-                            Toast.makeText(RegisterOrganizationActivity.this, "Server Error: " + errorMsg, Toast.LENGTH_LONG).show();
-                        }
+                        Toast.makeText(RegisterOrganizationActivity.this, errorMsg, Toast.LENGTH_LONG).show();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
