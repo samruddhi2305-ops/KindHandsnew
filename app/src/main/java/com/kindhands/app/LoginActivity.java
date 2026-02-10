@@ -33,7 +33,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ✅ Auto-login if already logged in
         if (SharedPrefManager.getInstance(this).isLoggedIn()) {
             navigateToDashboard();
             return;
@@ -41,20 +40,17 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.login);
 
-        // Init views
         etEmail = findViewById(R.id.etLoginEmail);
         etPassword = findViewById(R.id.etLoginPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
         tvRegister = findViewById(R.id.tvGoToRegister);
 
-        // ✅ Forgot password → Works ONLY for USERS
         tvForgotPassword.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordPhoneActivity.class);
             startActivity(intent);
         });
 
-        // Login click
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
@@ -69,30 +65,22 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // 🔐 ADMIN LOGIN (Hardcoded)
-            if ("team.kindhands12@gmail.com".equalsIgnoreCase(email)
-                    && "#KINDHANDS26".equals(password)) {
-
-                SharedPrefManager.getInstance(this)
-                        .saveUser("Admin", email, "ADMIN");
-
+            if ("team.kindhands12@gmail.com".equalsIgnoreCase(email) && "#KINDHANDS26".equals(password)) {
+                SharedPrefManager.getInstance(this).saveUser(0L, "Admin", email, "ADMIN");
                 Toast.makeText(this, "Welcome Admin", Toast.LENGTH_SHORT).show();
                 navigateToDashboard();
                 return;
             }
 
-            // Try USER/DONOR login first
-            loginDonor(email, password);
+            loginUser(email, password);
         });
 
-        // Register
         tvRegister.setOnClickListener(v -> {
             startActivity(new Intent(this, RoleSelectionActivity.class));
         });
     }
 
-    // ================= USER/DONOR LOGIN =================
-    private void loginDonor(String email, String password) {
+    private void loginUser(String email, String password) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
         User user = new User(email, password);
 
@@ -100,29 +88,33 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    User donor = response.body();
+                    User loggedInUser = response.body();
                     SharedPrefManager.getInstance(LoginActivity.this)
-                            .saveUser(donor.getName(), donor.getEmail(), "DONOR");
+                            .saveUser(loggedInUser.getId(), loggedInUser.getName(), loggedInUser.getEmail(), "DONOR");
 
-                    Toast.makeText(LoginActivity.this, "Welcome " + donor.getName(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Welcome " + loggedInUser.getName(), Toast.LENGTH_SHORT).show();
                     navigateToDashboard();
                 } else {
-                    // ❌ User failed → try organization
-                    loginOrganization(email, password);
+                    // User login failed, now try organization login
+                    Long userId = SharedPrefManager.getInstance(LoginActivity.this).getUserId();
+                    if(userId != -1L) { // Check if a user is logged in to get the userId
+                        loginOrganization(userId, password);
+                    } else {
+                         Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                loginOrganization(email, password);
+                Toast.makeText(LoginActivity.this, "Network error, please try again", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // ================= ORGANIZATION LOGIN =================
-    private void loginOrganization(String email, String password) {
+    private void loginOrganization(Long userId, String password) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        OrganizationLoginRequest request = new OrganizationLoginRequest(email, password);
+        OrganizationLoginRequest request = new OrganizationLoginRequest(userId, password);
 
         apiService.loginOrganization(request).enqueue(new Callback<Organization>() {
             @Override
@@ -130,25 +122,25 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     Organization org = response.body();
                     SharedPrefManager.getInstance(LoginActivity.this)
-                            .saveUser(org.getName(), org.getEmail(), "ORGANIZATION");
+                            .saveUser(org.getUserId(), org.getName(), org.getEmail(), "ORGANIZATION");
 
                     Toast.makeText(LoginActivity.this, "Welcome " + org.getName(), Toast.LENGTH_SHORT).show();
                     navigateToDashboard();
                 } else {
-                    String errorMsg = "Invalid email or password";
-                    try {
-                        if (response.errorBody() != null) {
-                            String serverError = response.errorBody().string();
-                            if (serverError.contains("Organization not approved")) {
-                                errorMsg = "Organization not approved";
-                            } else if (serverError.contains("Organization not found")) {
-                                errorMsg = "Organization not found";
-                            } else if (serverError.contains("Invalid password")) {
-                                errorMsg = "Invalid password";
+                    String errorMsg = "Invalid credentials";
+                    if (response.code() == 401 || response.code() == 403) {
+                        try {
+                            if (response.errorBody() != null) {
+                                String serverError = response.errorBody().string();
+                                if (serverError.contains("not approved")) {
+                                    errorMsg = "Organization not approved";
+                                } else {
+                                    errorMsg = "Invalid User ID or Password";
+                                }
                             }
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
                     Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                 }
@@ -161,7 +153,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    // ================= NAVIGATION =================
     private void navigateToDashboard() {
         String role = SharedPrefManager.getInstance(this).getUserType();
         Intent intent;

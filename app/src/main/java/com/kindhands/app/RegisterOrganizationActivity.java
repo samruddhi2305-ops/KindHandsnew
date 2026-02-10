@@ -15,6 +15,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
+import com.kindhands.app.utils.SharedPrefManager;
 
 import java.io.*;
 
@@ -33,7 +34,6 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
     Button btnUpload, btnRegister;
 
     String selectedFilePath = null;
-
     ActivityResultLauncher<Intent> launcher;
 
     @Override
@@ -116,33 +116,27 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         String address = etAddress.getText().toString().trim();
         String pincode = etPincode.getText().toString().trim();
 
-        if (name.isEmpty()) {
-            etName.setError("Name required");
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || contact.isEmpty() || address.isEmpty() || pincode.isEmpty()) {
+            Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("Valid email required");
-            return;
-        }
-        if (password.length() < 6) {
-            etPassword.setError("Password min 6 chars");
-            return;
-        }
-        if (contact.isEmpty()) {
-            etContact.setError("Contact required");
-            return;
-        }
-        if (address.isEmpty()) {
-            etAddress.setError("Address required");
-            return;
-        }
-        if (pincode.length() != 6) {
-            etPincode.setError("Valid 6-digit pincode required");
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Enter a valid email");
+            etEmail.requestFocus();
             return;
         }
 
         if (selectedFilePath == null) {
-            Toast.makeText(this, "Please upload document", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please upload a document", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Long loggedInUserId = SharedPrefManager.getInstance(this).getUserId();
+        if (loggedInUserId == -1L) {
+            Toast.makeText(this, "Session expired. Please log in again.", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
             return;
         }
 
@@ -153,32 +147,43 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
 
         ApiService api = RetrofitClient.getClient().create(ApiService.class);
 
+        // Explicitly create MultipartBody.Part for each field to ensure key name and format is exactly as backend expects
+        RequestBody rbName = createPartFromString(name);
+        RequestBody rbPassword = createPartFromString(password);
+        RequestBody rbEmail = createPartFromString(email);
+        RequestBody rbContact = createPartFromString(contact);
+        RequestBody rbType = createPartFromString(type);
+        RequestBody rbAddress = createPartFromString(address);
+        RequestBody rbPincode = createPartFromString(pincode);
+        RequestBody rbUserId = createPartFromString(String.valueOf(loggedInUserId));
+
+        // Document part
+        RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        MultipartBody.Part bodyDocument = MultipartBody.Part.createFormData("document", file.getName(), requestFile);
+
         Call<String> call = api.registerOrganization(
-                rb(name),
-                rb(email),
-                rb(password),
-                rb(contact),
-                rb(type),
-                rb(address),
-                rb(pincode),
-                MultipartBody.Part.createFormData(
-                        "document",
-                        file.getName(),
-                        RequestBody.create(MediaType.parse("multipart/form-data"), file)
-                )
+                rbName,
+                rbEmail,
+                rbPassword,
+                rbContact,
+                rbType,
+                rbAddress,
+                rbPincode,
+                rbUserId,
+                bodyDocument
         );
 
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(RegisterOrganizationActivity.this, "Registered successfully! Please wait for admin approval.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterOrganizationActivity.this, "Registered successfully! Waiting for Admin Approval.", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
                     try {
-                        String errorMsg = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                        String errorMsg = response.errorBody() != null ? response.errorBody().string() : "Error 400";
                         Log.e("ORG_REGISTER_ERROR", "Error: " + errorMsg);
-                        Toast.makeText(RegisterOrganizationActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                        Toast.makeText(RegisterOrganizationActivity.this, "Registration Failed: " + errorMsg, Toast.LENGTH_LONG).show();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -193,7 +198,7 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         });
     }
 
-    private RequestBody rb(String s) {
-        return RequestBody.create(MediaType.parse("text/plain"), s);
+    private RequestBody createPartFromString(String string) {
+        return RequestBody.create(MultipartBody.FORM, string);
     }
 }
