@@ -10,7 +10,7 @@ public class RetrofitClient {
 
     // ⚠️ PC / Laptop IP (Backend running on this IP)
     // WiFi बदलला तर हा IP update करावा लागतो
-    private static final String BASE_URL = "http://192.168.31.148:8081/";
+    private static final String BASE_URL = "http://10.29.9.134:8081/";
 
     private RetrofitClient() {
         // ❌ prevent object creation

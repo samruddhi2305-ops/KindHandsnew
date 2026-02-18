@@ -15,7 +15,8 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
-import com.kindhands.app.utils.SharedPrefManager;
+
+import org.json.JSONObject;
 
 import java.io.*;
 
@@ -78,7 +79,7 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
 
         btnUpload.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
+            intent.setType("application/pdf");
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             launcher.launch(intent);
         });
@@ -89,7 +90,7 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
     private File copyUriToFile(Uri uri) {
         try {
             InputStream in = getContentResolver().openInputStream(uri);
-            File file = new File(getCacheDir(), "doc_" + System.currentTimeMillis());
+            File file = new File(getCacheDir(), "doc_" + System.currentTimeMillis() + ".pdf");
             FileOutputStream out = new FileOutputStream(file);
 
             byte[] buf = new byte[1024];
@@ -128,77 +129,70 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         }
 
         if (selectedFilePath == null) {
-            Toast.makeText(this, "Please upload a document", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Long loggedInUserId = SharedPrefManager.getInstance(this).getUserId();
-        if (loggedInUserId == -1L) {
-            Toast.makeText(this, "Session expired. Please log in again.", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
+            Toast.makeText(this, "Please upload certificate in PDF format only", Toast.LENGTH_SHORT).show();
             return;
         }
 
         File file = new File(selectedFilePath);
-
         String rawType = spinnerType.getSelectedItem().toString();
         String type = rawType.equalsIgnoreCase("Orphanage") ? "ORPHANAGE" : "OLD_AGE_HOME";
 
         ApiService api = RetrofitClient.getClient().create(ApiService.class);
 
-        // Explicitly create MultipartBody.Part for each field to ensure key name and format is exactly as backend expects
-        RequestBody rbName = createPartFromString(name);
-        RequestBody rbPassword = createPartFromString(password);
-        RequestBody rbEmail = createPartFromString(email);
-        RequestBody rbContact = createPartFromString(contact);
-        RequestBody rbType = createPartFromString(type);
-        RequestBody rbAddress = createPartFromString(address);
-        RequestBody rbPincode = createPartFromString(pincode);
-        RequestBody rbUserId = createPartFromString(String.valueOf(loggedInUserId));
+        // Convert all fields to MultipartBody.Part for explicit sending
+        MultipartBody.Part pName = createPart("name", name);
+        MultipartBody.Part pEmail = createPart("email", email);
+        MultipartBody.Part pPassword = createPart("password", password);
+        MultipartBody.Part pContact = createPart("contact", contact);
+        MultipartBody.Part pType = createPart("type", type);
+        MultipartBody.Part pAddress = createPart("address", address);
+        MultipartBody.Part pPincode = createPart("pincode", pincode);
+        MultipartBody.Part pUserId = createPart("userId", "0");
 
         // Document part
-        RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        MultipartBody.Part bodyDocument = MultipartBody.Part.createFormData("document", file.getName(), requestFile);
+        RequestBody requestFile = RequestBody.create(MediaType.parse("application/pdf"), file);
+        MultipartBody.Part pDocument = MultipartBody.Part.createFormData("document", file.getName(), requestFile);
+
+        btnRegister.setEnabled(false);
+        btnRegister.setText("Registering...");
 
         Call<String> call = api.registerOrganization(
-                rbName,
-                rbEmail,
-                rbPassword,
-                rbContact,
-                rbType,
-                rbAddress,
-                rbPincode,
-                rbUserId,
-                bodyDocument
+                pName, pEmail, pPassword, pContact, pType, pAddress, pPincode, pUserId, pDocument
         );
 
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
+                btnRegister.setEnabled(true);
+                btnRegister.setText("Register Organization");
                 if (response.isSuccessful()) {
-                    Toast.makeText(RegisterOrganizationActivity.this, "Registered successfully! Waiting for Admin Approval.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(RegisterOrganizationActivity.this, "Registration Successful! Pending approval.", Toast.LENGTH_LONG).show();
                     finish();
                 } else {
                     try {
-                        String errorMsg = response.errorBody() != null ? response.errorBody().string() : "Error 400";
-                        Log.e("ORG_REGISTER_ERROR", "Error: " + errorMsg);
-                        Toast.makeText(RegisterOrganizationActivity.this, "Registration Failed: " + errorMsg, Toast.LENGTH_LONG).show();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "{}";
+                        Log.e("ORG_REGISTER_ERROR", "Error: " + errorBody);
+                        
+                        JSONObject errorJson = new JSONObject(errorBody);
+                        String msg = errorJson.optString("message", "Error " + response.code());
+                        Toast.makeText(RegisterOrganizationActivity.this, msg, Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        Toast.makeText(RegisterOrganizationActivity.this, "Registration Failed: " + response.code(), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
+                btnRegister.setEnabled(true);
+                btnRegister.setText("Register Organization");
                 Log.e("ORG_REGISTER_FAIL", t.getMessage(), t);
                 Toast.makeText(RegisterOrganizationActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private RequestBody createPartFromString(String string) {
-        return RequestBody.create(MultipartBody.FORM, string);
+    private MultipartBody.Part createPart(String partName, String value) {
+        return MultipartBody.Part.createFormData(partName, value);
     }
 }

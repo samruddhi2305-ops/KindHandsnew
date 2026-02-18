@@ -1,16 +1,21 @@
 package com.kindhands.app.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class User {
     private Long id;
     private String name;
     private String email;
     private String password;
-    private String mobile; 
-    private String address; 
-    private String pincode; 
-    private String gender; 
-    private String role; 
-    private boolean publicHistory; // ✅ Added
+    
+    // Explicitly mapping 'mobile' as it's common in Spring backends
+    @SerializedName("mobile")
+    private String mobile;
+    
+    private String address;
+    private String pincode;
+    private String gender;
+    private String role; // "DONOR"
 
     public User() {}
 
@@ -23,7 +28,6 @@ public class User {
         this.pincode = pincode;
         this.gender = gender;
         this.role = role;
-        this.publicHistory = false;
     }
 
     public User(String email, String password) {
@@ -31,6 +35,7 @@ public class User {
         this.password = password;
     }
 
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -49,6 +54,4 @@ public class User {
     public void setGender(String gender) { this.gender = gender; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
-    public boolean isPublicHistory() { return publicHistory; }
-    public void setPublicHistory(boolean publicHistory) { this.publicHistory = publicHistory; }
 }

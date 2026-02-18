@@ -54,14 +54,14 @@ public interface ApiService {
     @Multipart
     @POST("api/organizations/register")
     Call<String> registerOrganization(
-            @Part("name") RequestBody name,
-            @Part("email") RequestBody email,
-            @Part("password") RequestBody password,
-            @Part("contact") RequestBody contact,
-            @Part("type") RequestBody type,
-            @Part("address") RequestBody address,
-            @Part("pincode") RequestBody pincode,
-            @Part("userId") RequestBody userId,
+            @Part MultipartBody.Part name,
+            @Part MultipartBody.Part email,
+            @Part MultipartBody.Part password,
+            @Part MultipartBody.Part contact,
+            @Part MultipartBody.Part type,
+            @Part MultipartBody.Part address,
+            @Part MultipartBody.Part pincode,
+            @Part MultipartBody.Part userId,
             @Part MultipartBody.Part document
     );
 
