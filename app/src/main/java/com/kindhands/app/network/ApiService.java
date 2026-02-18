@@ -13,15 +13,13 @@ import retrofit2.http.*;
 
 public interface ApiService {
 
-    // ===================== AUTH =====================
+    // ===================== AUTH / USER =====================
 
     @POST("api/auth/register")
-    Call<User> registerUser(@Body User user);
+    Call<Map<String, String>> registerUser(@Body User user);
 
     @POST("api/auth/login")
     Call<User> loginUser(@Body User user);
-
-    // -------- FORGOT PASSWORD --------
 
     @POST("api/auth/forgot-password")
     Call<ForgotPasswordActivity.ApiResponse> forgotPassword(@Query("email") String email);
@@ -53,7 +51,7 @@ public interface ApiService {
 
     @Multipart
     @POST("api/organizations/register")
-    Call<String> registerOrganization(
+    Call<ResponseBody> registerOrganization(
             @Part MultipartBody.Part name,
             @Part MultipartBody.Part email,
             @Part MultipartBody.Part password,
@@ -61,7 +59,6 @@ public interface ApiService {
             @Part MultipartBody.Part type,
             @Part MultipartBody.Part address,
             @Part MultipartBody.Part pincode,
-            @Part MultipartBody.Part userId,
             @Part MultipartBody.Part document
     );
 
@@ -90,9 +87,9 @@ public interface ApiService {
 
     // ===================== DONATION REQUESTS =====================
 
-    @GET("requests/open")
+    @GET("api/requests/open")
     Call<List<DonationRequest>> getOpenRequests();
 
-    @POST("requests/create")
+    @POST("api/requests/create")
     Call<DonationRequest> createRequest(@Body DonationRequest request);
 }

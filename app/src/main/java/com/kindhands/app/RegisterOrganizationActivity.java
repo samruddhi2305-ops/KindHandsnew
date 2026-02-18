@@ -23,6 +23,7 @@ import java.io.*;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -134,20 +135,20 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         }
 
         File file = new File(selectedFilePath);
-        String rawType = spinnerType.getSelectedItem().toString();
-        String type = rawType.equalsIgnoreCase("Orphanage") ? "ORPHANAGE" : "OLD_AGE_HOME";
+        
+        // Always register as ORPHANAGE as requested
+        String type = "ORPHANAGE";
 
         ApiService api = RetrofitClient.getClient().create(ApiService.class);
 
-        // Convert all fields to MultipartBody.Part for explicit sending
-        MultipartBody.Part pName = createPart("name", name);
-        MultipartBody.Part pEmail = createPart("email", email);
-        MultipartBody.Part pPassword = createPart("password", password);
-        MultipartBody.Part pContact = createPart("contact", contact);
-        MultipartBody.Part pType = createPart("type", type);
-        MultipartBody.Part pAddress = createPart("address", address);
-        MultipartBody.Part pPincode = createPart("pincode", pincode);
-        MultipartBody.Part pUserId = createPart("userId", "0");
+        // Convert all fields to MultipartBody.Part to match ApiService interface
+        MultipartBody.Part pName = MultipartBody.Part.createFormData("name", name);
+        MultipartBody.Part pEmail = MultipartBody.Part.createFormData("email", email);
+        MultipartBody.Part pPassword = MultipartBody.Part.createFormData("password", password);
+        MultipartBody.Part pContact = MultipartBody.Part.createFormData("contact", contact);
+        MultipartBody.Part pType = MultipartBody.Part.createFormData("type", type);
+        MultipartBody.Part pAddress = MultipartBody.Part.createFormData("address", address);
+        MultipartBody.Part pPincode = MultipartBody.Part.createFormData("pincode", pincode);
 
         // Document part
         RequestBody requestFile = RequestBody.create(MediaType.parse("application/pdf"), file);
@@ -156,13 +157,13 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         btnRegister.setEnabled(false);
         btnRegister.setText("Registering...");
 
-        Call<String> call = api.registerOrganization(
-                pName, pEmail, pPassword, pContact, pType, pAddress, pPincode, pUserId, pDocument
+        Call<ResponseBody> call = api.registerOrganization(
+                pName, pEmail, pPassword, pContact, pType, pAddress, pPincode, pDocument
         );
 
-        call.enqueue(new Callback<String>() {
+        call.enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register Organization");
                 if (response.isSuccessful()) {
@@ -174,7 +175,7 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                         Log.e("ORG_REGISTER_ERROR", "Error: " + errorBody);
                         
                         JSONObject errorJson = new JSONObject(errorBody);
-                        String msg = errorJson.optString("message", "Error " + response.code());
+                        String msg = errorJson.optString("message", "Registration Failed: " + response.code());
                         Toast.makeText(RegisterOrganizationActivity.this, msg, Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
                         Toast.makeText(RegisterOrganizationActivity.this, "Registration Failed: " + response.code(), Toast.LENGTH_SHORT).show();
@@ -183,16 +184,12 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register Organization");
                 Log.e("ORG_REGISTER_FAIL", t.getMessage(), t);
                 Toast.makeText(RegisterOrganizationActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private MultipartBody.Part createPart(String partName, String value) {
-        return MultipartBody.Part.createFormData(partName, value);
     }
 }

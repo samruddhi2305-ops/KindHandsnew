@@ -89,9 +89,6 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister.setText("Registering...");
 
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-
-        // Switching to loginDonor endpoint which you said works in Postman for Donors
-        // Or if you have a specific registerDonor endpoint in your backend, use that.
         Call<User> call = apiService.registerDonor(newUser);
 
         call.enqueue(new Callback<User>() {
@@ -123,7 +120,8 @@ public class RegisterActivity extends AppCompatActivity {
             public void onFailure(Call<User> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register");
-                Toast.makeText(RegisterActivity.this, "Network Error: Use Computer IP, not localhost", Toast.LENGTH_LONG).show();
+                // Showing actual error message for better debugging
+                Toast.makeText(RegisterActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 Log.e("REGISTER_NETWORK", t.getMessage(), t);
             }
         });

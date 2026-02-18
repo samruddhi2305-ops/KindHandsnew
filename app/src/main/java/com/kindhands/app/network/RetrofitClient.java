@@ -8,12 +8,11 @@ public class RetrofitClient {
 
     private static Retrofit retrofit;
 
-    // ⚠️ PC / Laptop IP (Backend running on this IP)
-    // WiFi बदलला तर हा IP update करावा लागतो
+    // Updated to port 8081 as per your previous setup
     private static final String BASE_URL = "http://10.29.9.134:8081/";
 
     private RetrofitClient() {
-        // ❌ prevent object creation
+        // prevent object creation
     }
 
     public static Retrofit getClient() {
@@ -22,9 +21,7 @@ public class RetrofitClient {
                 if (retrofit == null) {
                     retrofit = new Retrofit.Builder()
                             .baseUrl(BASE_URL)
-                            // For plain string responses (like "OTP sent")
                             .addConverterFactory(ScalarsConverterFactory.create())
-                            // For JSON responses
                             .addConverterFactory(GsonConverterFactory.create())
                             .build();
                 }
