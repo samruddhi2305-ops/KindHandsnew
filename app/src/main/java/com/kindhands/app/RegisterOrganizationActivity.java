@@ -8,6 +8,7 @@ import android.util.Log;
 import android.util.Patterns;
 import android.widget.*;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,13 +29,13 @@ import retrofit2.Response;
 
 public class RegisterOrganizationActivity extends AppCompatActivity {
 
-    EditText etName, etEmail, etPassword, etContact, etAddress, etPincode;
-    Spinner spinnerType;
-    TextView tvFile;
-    Button btnUpload, btnRegister;
+    private EditText etName, etEmail, etPassword, etContact, etAddress, etPincode;
+    private Spinner spinnerType;
+    private TextView tvFile;
+    private Button btnUpload, btnRegister;
 
-    String selectedFilePath = null;
-    ActivityResultLauncher<Intent> launcher;
+    private String selectedFilePath = null;
+    private ActivityResultLauncher<Intent> launcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +48,15 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        
+        // Modern way to handle back press
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finish();
+            }
+        });
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         etName = findViewById(R.id.etOrgName);
         etEmail = findViewById(R.id.etOrgEmail);
@@ -87,23 +96,19 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
     }
 
     private File copyUriToFile(Uri uri) {
-        try {
-            InputStream in = getContentResolver().openInputStream(uri);
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            if (in == null) return null;
             File file = new File(getCacheDir(), "doc_" + System.currentTimeMillis() + ".pdf");
-            FileOutputStream out = new FileOutputStream(file);
-
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
             }
-
-            in.close();
-            out.close();
             return file;
-
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("FILE_ERROR", "Error copying file", e);
             return null;
         }
     }
@@ -133,13 +138,10 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         }
 
         File file = new File(selectedFilePath);
-        
-        // Force the type to ORPHANAGE as requested
-        String type = "ORPHANAGE";
+        String type = "ORPHANAGE"; // Always ORPHANAGE as requested
 
         ApiService api = RetrofitClient.getClient().create(ApiService.class);
 
-        // Map textual fields into individual parts matching the 8 @RequestParams in your IntelliJ controller
         MultipartBody.Part pName = MultipartBody.Part.createFormData("name", name);
         MultipartBody.Part pEmail = MultipartBody.Part.createFormData("email", email);
         MultipartBody.Part pPassword = MultipartBody.Part.createFormData("password", password);
@@ -148,7 +150,6 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         MultipartBody.Part pAddress = MultipartBody.Part.createFormData("address", address);
         MultipartBody.Part pPincode = MultipartBody.Part.createFormData("pincode", pincode);
 
-        // Document part (Matches @RequestParam("document") in backend)
         RequestBody requestFile = RequestBody.create(MediaType.parse("application/pdf"), file);
         MultipartBody.Part pDocument = MultipartBody.Part.createFormData("document", file.getName(), requestFile);
 
@@ -165,18 +166,14 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register Organization");
                 
-                try {
+                try (ResponseBody responseBody = response.isSuccessful() ? response.body() : response.errorBody()) {
+                    String msg = responseBody != null ? responseBody.string() : "Error " + response.code();
+                    Toast.makeText(RegisterOrganizationActivity.this, msg, Toast.LENGTH_LONG).show();
                     if (response.isSuccessful()) {
-                        String successMsg = response.body() != null ? response.body().string() : "Registration Successful";
-                        Toast.makeText(RegisterOrganizationActivity.this, successMsg, Toast.LENGTH_LONG).show();
                         finish();
-                    } else {
-                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "Error " + response.code();
-                        Log.e("ORG_REGISTER_ERROR", "Server Error: " + errorBody);
-                        Toast.makeText(RegisterOrganizationActivity.this, "Server Crash (500): Check your IntelliJ userId constraint", Toast.LENGTH_LONG).show();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e("ORG_REGISTER_ERROR", "Error reading response", e);
                 }
             }
 
@@ -184,8 +181,9 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register Organization");
-                Log.e("ORG_REGISTER_FAIL", t.getMessage(), t);
-                Toast.makeText(RegisterOrganizationActivity.this, "Network error: Use Laptop Hotspot IP", Toast.LENGTH_SHORT).show();
+                Log.e("ORG_REGISTER_FAIL", "Network failure", t);
+                // Show the ACTUAL error message to help identify connection issues
+                Toast.makeText(RegisterOrganizationActivity.this, "Connection Failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
