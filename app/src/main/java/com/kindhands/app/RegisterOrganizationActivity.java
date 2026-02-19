@@ -16,8 +16,6 @@ import androidx.appcompat.widget.Toolbar;
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
 
-import org.json.JSONObject;
-
 import java.io.*;
 
 import okhttp3.MediaType;
@@ -136,12 +134,12 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
 
         File file = new File(selectedFilePath);
         
-        // Always register as ORPHANAGE as requested
+        // Force the type to ORPHANAGE as requested
         String type = "ORPHANAGE";
 
         ApiService api = RetrofitClient.getClient().create(ApiService.class);
 
-        // Convert all fields to MultipartBody.Part to match ApiService interface
+        // Map textual fields into individual parts matching the 8 @RequestParams in your IntelliJ controller
         MultipartBody.Part pName = MultipartBody.Part.createFormData("name", name);
         MultipartBody.Part pEmail = MultipartBody.Part.createFormData("email", email);
         MultipartBody.Part pPassword = MultipartBody.Part.createFormData("password", password);
@@ -150,7 +148,7 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
         MultipartBody.Part pAddress = MultipartBody.Part.createFormData("address", address);
         MultipartBody.Part pPincode = MultipartBody.Part.createFormData("pincode", pincode);
 
-        // Document part
+        // Document part (Matches @RequestParam("document") in backend)
         RequestBody requestFile = RequestBody.create(MediaType.parse("application/pdf"), file);
         MultipartBody.Part pDocument = MultipartBody.Part.createFormData("document", file.getName(), requestFile);
 
@@ -166,20 +164,19 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register Organization");
-                if (response.isSuccessful()) {
-                    Toast.makeText(RegisterOrganizationActivity.this, "Registration Successful! Pending approval.", Toast.LENGTH_LONG).show();
-                    finish();
-                } else {
-                    try {
-                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "{}";
-                        Log.e("ORG_REGISTER_ERROR", "Error: " + errorBody);
-                        
-                        JSONObject errorJson = new JSONObject(errorBody);
-                        String msg = errorJson.optString("message", "Registration Failed: " + response.code());
-                        Toast.makeText(RegisterOrganizationActivity.this, msg, Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        Toast.makeText(RegisterOrganizationActivity.this, "Registration Failed: " + response.code(), Toast.LENGTH_SHORT).show();
+                
+                try {
+                    if (response.isSuccessful()) {
+                        String successMsg = response.body() != null ? response.body().string() : "Registration Successful";
+                        Toast.makeText(RegisterOrganizationActivity.this, successMsg, Toast.LENGTH_LONG).show();
+                        finish();
+                    } else {
+                        String errorBody = response.errorBody() != null ? response.errorBody().string() : "Error " + response.code();
+                        Log.e("ORG_REGISTER_ERROR", "Server Error: " + errorBody);
+                        Toast.makeText(RegisterOrganizationActivity.this, "Server Crash (500): Check your IntelliJ userId constraint", Toast.LENGTH_LONG).show();
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -188,7 +185,7 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register Organization");
                 Log.e("ORG_REGISTER_FAIL", t.getMessage(), t);
-                Toast.makeText(RegisterOrganizationActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterOrganizationActivity.this, "Network error: Use Laptop Hotspot IP", Toast.LENGTH_SHORT).show();
             }
         });
     }

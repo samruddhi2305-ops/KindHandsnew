@@ -3,6 +3,7 @@ package com.kindhands.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -84,48 +85,55 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void downloadAndOpenDoc(Long id) {
+        if (id == null) {
+            Toast.makeText(this, "Internal Error: Organization ID is missing from server response. Add getId() to backend entity.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         apiService.viewDoc(id).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         File file = new File(getExternalFilesDir(null), "certificate_" + id + ".pdf");
-                        InputStream is = response.body().byteStream();
-                        FileOutputStream fos = new FileOutputStream(file);
-                        byte[] buffer = new byte[4096];
-                        int read;
-                        while ((read = is.read(buffer)) != -1) {
-                            fos.write(buffer, 0, read);
+                        try (InputStream is = response.body().byteStream();
+                             FileOutputStream fos = new FileOutputStream(file)) {
+                            byte[] buffer = new byte[4096];
+                            int read;
+                            while ((read = is.read(buffer)) != -1) {
+                                fos.write(buffer, 0, read);
+                            }
+                            fos.flush();
                         }
-                        fos.flush();
-                        fos.close();
-                        is.close();
-
                         openFile(file);
                     } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(AdminDashboardActivity.this, "Failed to save file", Toast.LENGTH_SHORT).show();
+                        Log.e("DOWNLOAD_ERROR", "Error saving file", e);
+                        Toast.makeText(AdminDashboardActivity.this, "Failed to save file locally", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(AdminDashboardActivity.this, "File not found on server", Toast.LENGTH_SHORT).show();
+                    String error = "File not found (Error " + response.code() + ")";
+                    Log.e("DOWNLOAD_ERROR", error);
+                    Toast.makeText(AdminDashboardActivity.this, error, Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(AdminDashboardActivity.this, "Download failed", Toast.LENGTH_SHORT).show();
+                Log.e("DOWNLOAD_ERROR", "Network Failure", t);
+                Toast.makeText(AdminDashboardActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void openFile(File file) {
-        Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(uri, "application/pdf");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
+            Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", file);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "application/pdf");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         } catch (Exception e) {
+            Log.e("OPEN_FILE_ERROR", "No PDF viewer", e);
             Toast.makeText(this, "No app found to open PDF", Toast.LENGTH_SHORT).show();
         }
     }
@@ -168,8 +176,21 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
             h.btnView.setOnClickListener(v -> downloadAndOpenDoc(o.getId()));
 
-            h.btnApprove.setOnClickListener(v -> updateStatus(o.getId(), true));
-            h.btnReject.setOnClickListener(v -> updateStatus(o.getId(), false));
+            h.btnApprove.setOnClickListener(v -> {
+                if (o.getId() != null) {
+                    updateStatus(o.getId(), true);
+                } else {
+                    Toast.makeText(AdminDashboardActivity.this, "Cannot approve: ID missing", Toast.LENGTH_SHORT).show();
+                }
+            });
+            
+            h.btnReject.setOnClickListener(v -> {
+                if (o.getId() != null) {
+                    updateStatus(o.getId(), false);
+                } else {
+                    Toast.makeText(AdminDashboardActivity.this, "Cannot reject: ID missing", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         private void updateStatus(Long id, boolean approve) {
@@ -181,7 +202,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                         Toast.makeText(AdminDashboardActivity.this, approve ? "Approved" : "Rejected", Toast.LENGTH_SHORT).show();
                         loadPending();
                     } else {
-                        Toast.makeText(AdminDashboardActivity.this, "Update failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AdminDashboardActivity.this, "Update failed: " + response.code(), Toast.LENGTH_SHORT).show();
                     }
                 }
 

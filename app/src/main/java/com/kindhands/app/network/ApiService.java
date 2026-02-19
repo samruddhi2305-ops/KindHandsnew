@@ -22,9 +22,6 @@ public interface ApiService {
     Call<User> loginUser(@Body User user);
 
     @POST("api/auth/forgot-password")
-    Call<ForgotPasswordActivity.ApiResponse> forgotPassword(@Query("email") String email);
-
-    @POST("api/auth/forgot-password")
     Call<Map<String, String>> sendOtp(@Query("email") String email);
 
     @POST("api/auth/verify-otp")

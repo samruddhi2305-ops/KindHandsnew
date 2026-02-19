@@ -12,6 +12,7 @@ import com.google.gson.annotations.SerializedName;
 import com.kindhands.app.network.ApiService;
 import com.kindhands.app.network.RetrofitClient;
 
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -55,13 +56,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
     private void sendForgotPasswordRequest(String email) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
 
-        apiService.forgotPassword(email).enqueue(new Callback<ApiResponse>() {
+        apiService.sendOtp(email).enqueue(new Callback<Map<String, String>>() {
             @Override
-            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(
                             ForgotPasswordActivity.this,
-                            response.body().getMessage(),
+                            response.body().get("message"),
                             Toast.LENGTH_SHORT
                     ).show();
                 } else {
@@ -74,7 +75,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<ApiResponse> call, Throwable t) {
+            public void onFailure(Call<Map<String, String>> call, Throwable t) {
                 Toast.makeText(
                         ForgotPasswordActivity.this,
                         "Network error: " + t.getMessage(),

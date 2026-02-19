@@ -9,7 +9,7 @@ public class RetrofitClient {
     private static Retrofit retrofit;
 
     // Updated to port 8081 as per your previous setup
-    private static final String BASE_URL = "http://10.29.9.134:8081/";
+    private static final String BASE_URL = "http://192.168.76.134:8081/";
 
     private RetrofitClient() {
         // prevent object creation
