@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.os.Bundle;import android.os.Handler;
+import android.os.Bundle;
+import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+
+import com.kindhands.app.utils.SharedPrefManager;
 
 import java.util.Locale;
 
@@ -38,8 +41,13 @@ public class SplashActivity extends AppCompatActivity {
         // Decide where to go next
         new Handler().postDelayed(() -> {
             if (isLanguageSelected) {
-                // Go directly to Login
-                startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                if (SharedPrefManager.getInstance(SplashActivity.this).isLoggedIn()) {
+                    // If already registered/logged in, go directly to Community Info page
+                    startActivity(new Intent(SplashActivity.this, CommunityInfoActivity.class));
+                } else {
+                    // Otherwise go to Login
+                    startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                }
             } else {
                 // Show language selection screen
                 startActivity(new Intent(SplashActivity.this, LanguageSelectionActivity.class));
@@ -48,4 +56,3 @@ public class SplashActivity extends AppCompatActivity {
         }, 1000); // 1-second delay
     }
 }
-

@@ -49,10 +49,13 @@
             android:name=".RegisterOrganizationActivity"
             android:exported="false" />
 
-        <!-- 🔥 IMPORTANT FIX HERE -->
+        <activity
+            android:name=".CommunityInfoActivity"
+            android:exported="false" />
+
         <activity
             android:name=".OrganizationDashboardActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <activity
             android:name=".AdminDashboardActivity"

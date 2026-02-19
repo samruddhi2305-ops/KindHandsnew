@@ -49,7 +49,6 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
         
-        // Modern way to handle back press
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -170,6 +169,10 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                     String msg = responseBody != null ? responseBody.string() : "Error " + response.code();
                     Toast.makeText(RegisterOrganizationActivity.this, msg, Toast.LENGTH_LONG).show();
                     if (response.isSuccessful()) {
+                        // Navigate to Community Info page after success
+                        Intent intent = new Intent(RegisterOrganizationActivity.this, CommunityInfoActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
                         finish();
                     }
                 } catch (IOException e) {
@@ -182,7 +185,6 @@ public class RegisterOrganizationActivity extends AppCompatActivity {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register Organization");
                 Log.e("ORG_REGISTER_FAIL", "Network failure", t);
-                // Show the ACTUAL error message to help identify connection issues
                 Toast.makeText(RegisterOrganizationActivity.this, "Connection Failed: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });

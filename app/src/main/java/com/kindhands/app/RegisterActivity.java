@@ -20,7 +20,6 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText etName, etEmail, etPhone, etAddress, etPincode, etPassword;
     private Spinner spinnerGender;
     private Button btnRegister;
-    private TextView tvGoToLogin, tvGoToOrgRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +33,7 @@ public class RegisterActivity extends AppCompatActivity {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
             }
-            toolbar.setNavigationOnClickListener(v -> onBackPressed());
+            toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
             etName = findViewById(R.id.etRegisterName);
             etEmail = findViewById(R.id.etRegisterEmail);
@@ -44,29 +43,17 @@ public class RegisterActivity extends AppCompatActivity {
             etPassword = findViewById(R.id.etRegisterPassword);
             spinnerGender = findViewById(R.id.spinnerGender);
             btnRegister = findViewById(R.id.btnRegister);
-            tvGoToOrgRegister = findViewById(R.id.tvGoToOrgRegister);
-            tvGoToLogin = findViewById(R.id.tvGoToLogin);
 
             String[] genders = {"Male", "Female", "Other"};
             ArrayAdapter<String> adapter =
                     new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
             spinnerGender.setAdapter(adapter);
 
-            tvGoToOrgRegister.setOnClickListener(v ->
-                    startActivity(new Intent(this, RegisterOrganizationActivity.class)));
-
             btnRegister.setOnClickListener(v -> registerUser());
-
-            tvGoToLogin.setOnClickListener(v -> {
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
-            });
             
         } catch (Exception e) {
             Log.e("REGISTER_CRASH", "Error in onCreate", e);
-            Toast.makeText(this, "Layout Error: Check your XML", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "An error occurred during initialization", Toast.LENGTH_LONG).show();
             finish();
         }
     }
@@ -99,7 +86,8 @@ public class RegisterActivity extends AppCompatActivity {
 
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_LONG).show();
-                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    // Navigate to Community Info instead of Login
+                    Intent intent = new Intent(RegisterActivity.this, CommunityInfoActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
@@ -120,7 +108,6 @@ public class RegisterActivity extends AppCompatActivity {
             public void onFailure(Call<User> call, Throwable t) {
                 btnRegister.setEnabled(true);
                 btnRegister.setText("Register");
-                // Showing actual error message for better debugging
                 Toast.makeText(RegisterActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 Log.e("REGISTER_NETWORK", t.getMessage(), t);
             }

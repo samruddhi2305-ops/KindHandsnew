@@ -5,29 +5,118 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp"
+    android:background="@color/background_light"
     tools:context=".LanguageSelectionActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/choose_language_title"
-        android:textSize="24sp"
-        android:layout_marginBottom="32dp"/>
-
-    <Button
-        android:id="@+id/button_english"
+    <!-- Language Selection at the Top (Adjusted size and position) -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/english_button"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:paddingTop="20dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp">
 
-    <Button
-        android:id="@+id/button_marathi"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Language: "
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/button_english"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="EN"
+            android:textSize="14sp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="12dp"
+            android:textColor="@color/ngo_blue"/>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="18dp"
+            android:background="#BBBBBB"
+            android:layout_gravity="center_vertical"
+            android:layout_marginHorizontal="4dp"/>
+
+        <Button
+            android:id="@+id/button_marathi"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="मराठी"
+            android:textSize="14sp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="12dp"
+            android:textColor="@color/ngo_blue"/>
+    </LinearLayout>
+
+    <!-- Main Section: Role Selection / Registration -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/marathi_button"/>
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/logo"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to Kind Hands"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary_text"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select role to register"
+            android:textSize="16sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="32dp"/>
+
+        <Button
+            android:id="@+id/btnRoleDonor"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Donor"
+            android:textSize="18sp"
+            android:background="@drawable/btncurve"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/btnRoleOrphanage"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Orphanage"
+            android:textSize="18sp"
+            android:background="@drawable/btncurve"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/btnRoleOldAge"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Old Age Home"
+            android:textSize="18sp"
+            android:background="@drawable/btncurve"
+            android:layout_marginBottom="32dp"/>
+
+    </LinearLayout>
 
 </LinearLayout>
-    

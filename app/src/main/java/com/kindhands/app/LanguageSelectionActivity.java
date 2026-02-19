@@ -1,5 +1,5 @@
 package com.kindhands.app;
-import android.content.Context;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -20,21 +20,35 @@ public class LanguageSelectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_language_selection);
 
+        // Language Buttons (Small at the top)
         Button englishButton = findViewById(R.id.button_english);
         Button marathiButton = findViewById(R.id.button_marathi);
 
-        englishButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setLocale("en");
-            }
+        // Registration Buttons
+        Button btnDonor = findViewById(R.id.btnRoleDonor);
+        Button btnOrphanage = findViewById(R.id.btnRoleOrphanage);
+        Button btnOldAge = findViewById(R.id.btnRoleOldAge);
+
+        // Language Listeners
+        englishButton.setOnClickListener(v -> setLocale("en"));
+        marathiButton.setOnClickListener(v -> setLocale("mr"));
+
+        // Registration Navigation
+        btnDonor.setOnClickListener(v -> {
+            Intent intent = new Intent(LanguageSelectionActivity.this, RegisterActivity.class);
+            startActivity(intent);
         });
 
-        marathiButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setLocale("mr");
-            }
+        btnOrphanage.setOnClickListener(v -> {
+            Intent intent = new Intent(LanguageSelectionActivity.this, RegisterOrganizationActivity.class);
+            intent.putExtra("ORG_TYPE", "ORPHANAGE");
+            startActivity(intent);
+        });
+
+        btnOldAge.setOnClickListener(v -> {
+            Intent intent = new Intent(LanguageSelectionActivity.this, RegisterOrganizationActivity.class);
+            intent.putExtra("ORG_TYPE", "OLD_AGE_HOME");
+            startActivity(intent);
         });
     }
 
@@ -57,12 +71,7 @@ public class LanguageSelectionActivity extends AppCompatActivity {
         // Force light mode
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
-
-        // Restart the app to apply the language change and go to Login
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+        // Refresh the current activity to show changes
+        recreate();
     }
 }
-
