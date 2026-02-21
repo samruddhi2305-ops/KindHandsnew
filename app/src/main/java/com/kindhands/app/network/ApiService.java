@@ -84,9 +84,15 @@ public interface ApiService {
 
     // ===================== DONATION REQUESTS =====================
 
-    @GET("api/requests/open")
+    @GET("api/requests/pending")
     Call<List<DonationRequest>> getOpenRequests();
 
-    @POST("api/requests/create")
+    @POST("api/requests")
     Call<DonationRequest> createRequest(@Body DonationRequest request);
+
+    @PUT("api/requests/{id}/approve")
+    Call<ResponseBody> acceptDonation(@Path("id") Long id);
+
+    @PUT("api/requests/{id}/reject")
+    Call<ResponseBody> rejectDonation(@Path("id") Long id);
 }

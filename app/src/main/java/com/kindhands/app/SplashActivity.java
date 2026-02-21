@@ -26,6 +26,7 @@ public class SplashActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         boolean isLanguageSelected = prefs.getBoolean("is_language_selected", false);
+        boolean isAppAlreadyInstalled = prefs.getBoolean("is_app_already_installed", false);
 
         // Apply the saved language if it exists
         if (isLanguageSelected) {
@@ -40,19 +41,20 @@ public class SplashActivity extends AppCompatActivity {
 
         // Decide where to go next
         new Handler().postDelayed(() -> {
-            if (isLanguageSelected) {
+            if (isAppAlreadyInstalled) {
+                // For users who have already used the app once
                 if (SharedPrefManager.getInstance(SplashActivity.this).isLoggedIn()) {
-                    // If already registered/logged in, go directly to Community Info page
-                    startActivity(new Intent(SplashActivity.this, CommunityInfoActivity.class));
+                    // Logged in user: Welcome Page then Community Info
+                    startActivity(new Intent(SplashActivity.this, WelcomeActivity.class));
                 } else {
-                    // Otherwise go to Login
+                    // Not logged in but used before: Login (Skipping Role/Lang selection)
                     startActivity(new Intent(SplashActivity.this, LoginActivity.class));
                 }
             } else {
-                // Show language selection screen
+                // Completely new user: Language/Role Selection Page
                 startActivity(new Intent(SplashActivity.this, LanguageSelectionActivity.class));
             }
-            finish(); // Finish this activity
-        }, 1000); // 1-second delay
+            finish();
+        }, 1000);
     }
 }

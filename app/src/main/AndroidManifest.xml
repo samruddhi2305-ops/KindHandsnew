@@ -15,9 +15,9 @@
         android:theme="@style/Theme.KindHands"
         android:usesCleartextTraffic="true">
 
-        <!-- Splash -->
+        <!-- Welcome Activity is now the Main Launcher -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".WelcomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
