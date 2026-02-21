@@ -12,14 +12,13 @@ public class Organization {
     private String pincode;
     private String documentPath;
     private String status;
-    private Long userId;
     private boolean publicProfile; // ✅ Added to track privacy preference
 
     public Organization() {}
 
     public Organization(String name, String email, String password,
                         String contact, String type, String address,
-                        String pincode, String documentPath, Long userId) {
+                        String pincode, String documentPath) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -27,7 +26,6 @@ public class Organization {
         this.type = type;
         this.address = address;
         this.pincode = pincode;
-        this.userId = userId;
         this.documentPath = documentPath;
         this.publicProfile = false;
     }
@@ -36,9 +34,6 @@ public class Organization {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

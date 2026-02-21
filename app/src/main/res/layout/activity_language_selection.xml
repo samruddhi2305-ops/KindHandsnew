@@ -8,7 +8,7 @@
     android:background="@color/background_light"
     tools:context=".LanguageSelectionActivity">
 
-    <!-- Language Selection at the Top (Adjusted size and position) -->
+    <!-- Language Selection at the Top -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,7 +16,7 @@
         android:gravity="end"
         android:paddingTop="20dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="8dp">
+        android:paddingBottom="0dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -60,63 +60,75 @@
     </LinearLayout>
 
     <!-- Main Section: Role Selection / Registration -->
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:fillViewport="true">
 
-        <ImageView
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@drawable/logo"
-            android:layout_marginBottom="24dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Welcome to Kind Hands"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/primary_text"
-            android:layout_marginBottom="8dp"/>
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="0dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Select role to register"
-            android:textSize="16sp"
-            android:textColor="#666666"
-            android:layout_marginBottom="32dp"/>
+            <ImageView
+                android:id="@+id/logo"
+                android:layout_width="wrap_content"
+                android:layout_height="399dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="0dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logo" />
 
-        <Button
-            android:id="@+id/btnRoleDonor"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Donor"
-            android:textSize="18sp"
-            android:background="@drawable/btncurve"
-            android:layout_marginBottom="16dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Welcome to Kind Hands"
+                android:textColor="@color/primary_text"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnRoleOrphanage"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Orphanage"
-            android:textSize="18sp"
-            android:background="@drawable/btncurve"
-            android:layout_marginBottom="16dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:text="Select role to register"
+                android:textColor="#666666"
+                android:textSize="16sp" />
 
-        <Button
-            android:id="@+id/btnRoleOldAge"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Old Age Home"
-            android:textSize="18sp"
-            android:background="@drawable/btncurve"
-            android:layout_marginBottom="32dp"/>
+            <Button
+                android:id="@+id/btnRoleDonor"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginHorizontal="24dp"
+                android:background="@drawable/btncurve"
+                android:text="Donor"
+                android:textSize="18sp" />
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/btnRoleOrphanage"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginHorizontal="24dp"
+                android:background="@drawable/btncurve"
+                android:text="Orphanage"
+                android:textSize="18sp" />
+
+            <Button
+                android:id="@+id/btnRoleOldAge"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="32dp"
+                android:layout_marginHorizontal="24dp"
+                android:background="@drawable/btncurve"
+                android:text="Old Age Home"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

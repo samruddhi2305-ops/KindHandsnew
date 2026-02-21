@@ -2,6 +2,7 @@ package com.kindhands.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -35,11 +36,14 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
     private List<DonationRequest> donationList = new ArrayList<>();
     private Button btnLogout, btnPostReq;
     private EditText etReqDescription;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_organization_dashboard);
+
+        apiService = RetrofitClient.getClient().create(ApiService.class);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -47,23 +51,19 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         recyclerView = findViewById(R.id.rvDonationRequests);
         btnLogout = findViewById(R.id.btnLogoutOrg);
-        
         etReqDescription = findViewById(R.id.etReqDescription);
         btnPostReq = findViewById(R.id.btnPostReq);
 
-        // Setup RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new DonationAdapter(donationList);
         recyclerView.setAdapter(adapter);
 
-        // Fetch Open Donations
         fetchOpenDonations();
 
-        // Logout
         btnLogout.setOnClickListener(v -> {
             SharedPrefManager.getInstance(this).logout();
             Intent intent = new Intent(OrganizationDashboardActivity.this, LoginActivity.class);
@@ -72,7 +72,6 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             finish();
         });
         
-        // Post Requirement
         btnPostReq.setOnClickListener(v -> postRequirement());
     }
 
@@ -84,116 +83,95 @@ public class OrganizationDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        DonationRequest request = new DonationRequest("REQUIREMENT", description, 1, "Organization Requirement");
-        
+        btnPostReq.setEnabled(false);
+        btnPostReq.setText("Posting...");
+
+        // Create request with current Organization's ID and Name
+        Long orgId = SharedPrefManager.getInstance(this).getUserId();
         String orgName = SharedPrefManager.getInstance(this).getUserName();
-        request.setOtherDetails(orgName); 
 
-        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        Call<DonationRequest> call = apiService.createRequest(request);
+        DonationRequest request = new DonationRequest("REQUIREMENT", description, 1, orgName);
+        request.setOrganizationId(orgId);
+        request.setStatus("OPEN");
 
-        call.enqueue(new Callback<DonationRequest>() {
+        apiService.createRequest(request).enqueue(new Callback<DonationRequest>() {
             @Override
             public void onResponse(Call<DonationRequest> call, Response<DonationRequest> response) {
+                btnPostReq.setEnabled(true);
+                btnPostReq.setText("Submit Requirement");
+                
                 if (response.isSuccessful()) {
                     Toast.makeText(OrganizationDashboardActivity.this, "Requirement Posted Successfully!", Toast.LENGTH_LONG).show();
                     etReqDescription.setText(""); 
+                    fetchOpenDonations(); // Refresh list to show new post
                 } else {
-                    Toast.makeText(OrganizationDashboardActivity.this, "Failed to post: " + response.message(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(OrganizationDashboardActivity.this, "Failed: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<DonationRequest> call, Throwable t) {
-                Toast.makeText(OrganizationDashboardActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                btnPostReq.setEnabled(true);
+                btnPostReq.setText("Submit Requirement");
+                Toast.makeText(OrganizationDashboardActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void fetchOpenDonations() {
-        ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        Call<List<DonationRequest>> call = apiService.getOpenRequests();
-
-        call.enqueue(new Callback<List<DonationRequest>>() {
+        apiService.getOpenRequests().enqueue(new Callback<List<DonationRequest>>() {
             @Override
             public void onResponse(Call<List<DonationRequest>> call, Response<List<DonationRequest>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     donationList.clear();
                     donationList.addAll(response.body());
                     adapter.notifyDataSetChanged();
-                } else {
-                    Toast.makeText(OrganizationDashboardActivity.this, "Failed to load donations", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<DonationRequest>> call, Throwable t) {
-                Toast.makeText(OrganizationDashboardActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("ORG_DASHBOARD", "Fetch error", t);
             }
         });
     }
 
-    // --- ADAPTER CLASS ---
-    private class DonationAdapter extends RecyclerView.Adapter<DonationAdapter.DonationViewHolder> {
-
+    private class DonationAdapter extends RecyclerView.Adapter<DonationAdapter.VH> {
         private List<DonationRequest> list;
-
-        public DonationAdapter(List<DonationRequest> list) {
-            this.list = list;
-        }
+        public DonationAdapter(List<DonationRequest> list) { this.list = list; }
 
         @NonNull
         @Override
-        public DonationViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = getLayoutInflater().inflate(R.layout.item_donation_offer, parent, false);
-            return new DonationViewHolder(view);
+        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new VH(getLayoutInflater().inflate(R.layout.item_donation_offer, parent, false));
         }
 
         @Override
-        public void onBindViewHolder(@NonNull DonationViewHolder holder, int position) {
-            DonationRequest donation = list.get(position);
-            
-            holder.tvCategory.setText(donation.getCategory() != null ? donation.getCategory() : "Donation");
-            holder.tvDetails.setText(donation.getDetails());
-            holder.tvDonorName.setText("Status: " + donation.getStatus()); 
+        public void onBindViewHolder(@NonNull VH h, int pos) {
+            DonationRequest d = list.get(pos);
+            h.tvCategory.setText(d.getCategory());
+            h.tvDetails.setText(d.getDetails());
+            h.tvDonorName.setText("Role: " + (d.getOtherDetails() != null ? d.getOtherDetails() : "Unknown"));
 
-            if ("clothes".equalsIgnoreCase(donation.getCategory())) {
-                holder.imgIcon.setImageResource(R.drawable.img_cloths);
-            } else if ("food".equalsIgnoreCase(donation.getCategory())) {
-                holder.imgIcon.setImageResource(R.drawable.img_food);
-            } else if ("books".equalsIgnoreCase(donation.getCategory())) {
-                holder.imgIcon.setImageResource(R.drawable.img_books);
-            } else {
-                holder.imgIcon.setImageResource(R.drawable.ic_launcher_foreground);
-            }
-            
-            holder.btnAccept.setOnClickListener(v -> {
-                 Toast.makeText(OrganizationDashboardActivity.this, "Accept Clicked", Toast.LENGTH_SHORT).show();
-            });
-
-            holder.btnReject.setOnClickListener(v -> {
-                Toast.makeText(OrganizationDashboardActivity.this, "Reject Clicked", Toast.LENGTH_SHORT).show();
-            });
+            h.btnAccept.setOnClickListener(v -> Toast.makeText(OrganizationDashboardActivity.this, "Accepting...", Toast.LENGTH_SHORT).show());
+            h.btnReject.setOnClickListener(v -> Toast.makeText(OrganizationDashboardActivity.this, "Declining...", Toast.LENGTH_SHORT).show());
         }
 
         @Override
-        public int getItemCount() {
-            return list.size();
-        }
+        public int getItemCount() { return list.size(); }
 
-        class DonationViewHolder extends RecyclerView.ViewHolder {
+        class VH extends RecyclerView.ViewHolder {
             ImageView imgIcon;
             TextView tvCategory, tvDonorName, tvDetails;
             Button btnAccept, btnReject;
-
-            public DonationViewHolder(@NonNull View itemView) {
-                super(itemView);
-                imgIcon = itemView.findViewById(R.id.imgDonationCategory);
-                tvCategory = itemView.findViewById(R.id.tvCategory);
-                tvDonorName = itemView.findViewById(R.id.tvDonorName);
-                tvDetails = itemView.findViewById(R.id.tvDetails);
-                btnAccept = itemView.findViewById(R.id.btnAccept);
-                btnReject = itemView.findViewById(R.id.btnReject);
+            VH(View v) {
+                super(v);
+                imgIcon = v.findViewById(R.id.imgDonationCategory);
+                tvCategory = v.findViewById(R.id.tvCategory);
+                tvDonorName = v.findViewById(R.id.tvDonorName);
+                tvDetails = v.findViewById(R.id.tvDetails);
+                btnAccept = v.findViewById(R.id.btnAccept);
+                btnReject = v.findViewById(R.id.btnReject);
             }
         }
     }

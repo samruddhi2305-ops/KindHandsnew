@@ -60,7 +60,7 @@ public interface ApiService {
     );
 
     @POST("api/organizations/login")
-    Call<Organization> loginOrganization(@Body OrganizationLoginRequest loginRequest);
+    Call<Organization> loginOrganization(@Body Map<String, String> loginData);
 
     @PUT("api/organizations/privacy")
     Call<Void> updateOrgPrivacy(@Query("email") String email, @Query("isPublic") boolean isPublic);

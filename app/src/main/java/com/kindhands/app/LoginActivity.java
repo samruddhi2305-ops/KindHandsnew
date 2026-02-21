@@ -18,6 +18,8 @@ import com.kindhands.app.network.RetrofitClient;
 import com.kindhands.app.utils.SharedPrefManager;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -72,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            loginUser(email, password);
+            tryLogin(email, password);
         });
 
         tvRegister.setOnClickListener(v -> {
@@ -80,10 +82,11 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void loginUser(String email, String password) {
+    private void tryLogin(String email, String password) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
+        
+        // 1. Try Normal User/Donor Login
         User user = new User(email, password);
-
         apiService.loginUser(user).enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
@@ -91,56 +94,42 @@ public class LoginActivity extends AppCompatActivity {
                     User loggedInUser = response.body();
                     SharedPrefManager.getInstance(LoginActivity.this)
                             .saveUser(loggedInUser.getId(), loggedInUser.getName(), loggedInUser.getEmail(), "DONOR");
-
                     Toast.makeText(LoginActivity.this, "Welcome " + loggedInUser.getName(), Toast.LENGTH_SHORT).show();
                     navigateToDashboard();
                 } else {
-                    // User login failed, now try organization login
-                    Long userId = SharedPrefManager.getInstance(LoginActivity.this).getUserId();
-                    if(userId != -1L) { // Check if a user is logged in to get the userId
-                        loginOrganization(userId, password);
-                    } else {
-                         Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
-                    }
+                    // 2. If Donor fails, try Organization Login
+                    tryOrganizationLogin(email, password);
                 }
             }
 
             @Override
             public void onFailure(Call<User> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "Network error, please try again", Toast.LENGTH_SHORT).show();
+                tryOrganizationLogin(email, password);
             }
         });
     }
 
-    private void loginOrganization(Long userId, String password) {
+    private void tryOrganizationLogin(String email, String password) {
         ApiService apiService = RetrofitClient.getClient().create(ApiService.class);
-        OrganizationLoginRequest request = new OrganizationLoginRequest(userId, password);
+        
+        // Match the backend Map<String, String> format for organization login
+        Map<String, String> loginData = new HashMap<>();
+        loginData.put("email", email);
+        loginData.put("password", password);
 
-        apiService.loginOrganization(request).enqueue(new Callback<Organization>() {
+        apiService.loginOrganization(loginData).enqueue(new Callback<Organization>() {
             @Override
             public void onResponse(Call<Organization> call, Response<Organization> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Organization org = response.body();
                     SharedPrefManager.getInstance(LoginActivity.this)
-                            .saveUser(org.getUserId(), org.getName(), org.getEmail(), "ORGANIZATION");
-
-                    Toast.makeText(LoginActivity.this, "Welcome " + org.getName(), Toast.LENGTH_SHORT).show();
+                            .saveUser(org.getId(), org.getName(), org.getEmail(), "ORGANIZATION");
+                    Toast.makeText(LoginActivity.this, "Welcome NGO " + org.getName(), Toast.LENGTH_SHORT).show();
                     navigateToDashboard();
                 } else {
-                    String errorMsg = "Invalid credentials";
-                    if (response.code() == 401 || response.code() == 403) {
-                        try {
-                            if (response.errorBody() != null) {
-                                String serverError = response.errorBody().string();
-                                if (serverError.contains("not approved")) {
-                                    errorMsg = "Organization not approved";
-                                } else {
-                                    errorMsg = "Invalid User ID or Password";
-                                }
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                    String errorMsg = "Invalid Email or Password";
+                    if (response.code() == 403) {
+                        errorMsg = "Organization not yet approved by Admin";
                     }
                     Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                 }
@@ -148,7 +137,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Organization> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "Login error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Login failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
